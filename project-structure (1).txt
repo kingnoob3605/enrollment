@@ -1,0 +1,39 @@
+elementary-enrollment-system/
+├── public/
+│   ├── index.html
+│   ├── favicon.ico
+│   └── manifest.json
+├── src/
+│   ├── assets/
+│   │   ├── images/
+│   │   └── styles/
+│   │       └── index.css
+│   ├── components/
+│   │   ├── common/
+│   │   │   ├── Header.jsx
+│   │   │   └── Footer.jsx
+│   │   ├── auth/
+│   │   │   └── Login.jsx
+│   │   ├── admin/
+│   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── TeacherManagement.jsx
+│   │   │   ├── Reports.jsx
+│   │   │   └── Settings.jsx
+│   │   ├── teacher/
+│   │   │   ├── TeacherDashboard.jsx
+│   │   │   └── EnrollmentForm.jsx
+│   │   ├── parent/
+│   │   │   └── ParentDashboard.jsx
+│   │   └── student/
+│   │       ├── StudentManagement.jsx
+│   │       └── StudentProfile.jsx
+│   ├── contexts/
+│   │   └── AuthContext.jsx
+│   ├── utils/
+│   │   ├── api.js
+│   │   └── helpers.js
+│   ├── App.jsx
+│   └── index.js
+├── package.json
+├── package-lock.json
+└── README.md
