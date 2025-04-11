@@ -4,10 +4,10 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("general");
   const [schoolInfo, setSchoolInfo] = useState({
     name: "Elementary School",
-    address: "123 School St, City, Province",
+    address: "Saavedra St, Zamboanga, 7000 Zamboanga del Sur",
     phone: "(123) 456-7890",
     email: "school@example.edu",
-    principal: "Dr. Jane Principal",
+    principal: "Miss Principal",
     schoolYear: "2023-2024",
   });
 
@@ -23,15 +23,15 @@ const Settings = () => {
       id: 2,
       username: "teacher1",
       role: "teacher",
-      name: "John Teacher",
-      email: "john@school.edu",
+      name: "Adam Teacher",
+      email: "adam@school.edu",
     },
     {
       id: 3,
       username: "parent1",
       role: "parent",
-      name: "Mary Parent",
-      email: "mary@example.com",
+      name: "Jovin Parent",
+      email: "Jovin@example.com",
     },
   ]);
 

@@ -14,7 +14,7 @@ const TeacherManagement = () => {
     },
     {
       id: 2,
-      name: "Jane Smith",
+      name: "Romyl S Magwate JR",
       position: "Class Teacher",
       grade: "2",
       section: "B",
@@ -23,7 +23,7 @@ const TeacherManagement = () => {
     },
     {
       id: 3,
-      name: "Robert Johnson",
+      name: "Brendo Dellatan",
       position: "Subject Teacher",
       grade: null,
       section: null,

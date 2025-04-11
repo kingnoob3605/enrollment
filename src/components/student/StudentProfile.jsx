@@ -8,7 +8,7 @@ const StudentProfile = ({ student, onClose, viewOnly = false }) => {
     birthdate: "2015-05-15",
     gender: "Male",
     address: "123 Main St, City",
-    parent: "Robert Smith",
+    parent: "Ana Amari",
     contact: "(123) 456-7890",
     email: "parent@example.com",
     health: {

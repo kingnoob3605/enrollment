@@ -7,7 +7,7 @@ const StudentManagement = ({ userType }) => {
   const [students, setStudents] = useState([
     {
       id: 1,
-      name: "John Smith",
+      name: "Depamaylo Angelo",
       grade: "1",
       section: "A",
       lrn: "123456789012",
@@ -15,7 +15,7 @@ const StudentManagement = ({ userType }) => {
     },
     {
       id: 2,
-      name: "Mary Johnson",
+      name: "Shamir Rasul",
       grade: "1",
       section: "B",
       lrn: "123456789013",
@@ -23,7 +23,7 @@ const StudentManagement = ({ userType }) => {
     },
     {
       id: 3,
-      name: "Robert Williams",
+      name: "Jerico Devino",
       grade: "2",
       section: "A",
       lrn: "123456789014",
@@ -31,7 +31,7 @@ const StudentManagement = ({ userType }) => {
     },
     {
       id: 4,
-      name: "Patricia Brown",
+      name: "Magwate Romyl",
       grade: "2",
       section: "B",
       lrn: "123456789015",
@@ -39,7 +39,7 @@ const StudentManagement = ({ userType }) => {
     },
     {
       id: 5,
-      name: "Michael Davis",
+      name: "Brendo Dellatan",
       grade: "3",
       section: "A",
       lrn: "123456789016",
