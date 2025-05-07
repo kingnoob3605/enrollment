@@ -62,6 +62,204 @@
   border-bottom: 1px solid #eee;
 }
 
+/* Admin dashboard specific */
+.admin-dashboard-home {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* Section cards styling */
+.section-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.section-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.section-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.section-header {
+  margin: 0 0 0.5rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-count {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  color: #333;
+}
+
+.students-by-section-header {
+  margin: 2rem 0 1rem 0;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #eee;
+  font-size: 1.25rem;
+  color: #333;
+}
+
+/* Dark theme overrides - keeping text dark while making cards visible */
+.dark-theme .section-card {
+  background-color: white; /* Keep white background even in dark mode */
+  border: 1px solid #444; /* Add border for better visibility */
+}
+
+.dark-theme .section-header,
+.dark-theme .section-count {
+  color: #333 !important; /* Force dark text on light cards */
+}
+
+.dark-theme .students-by-section-header {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+/* Summary statistics */
+.dashboard-summary {
+  margin-bottom: 2rem;
+}
+
+.summary-card {
+  background-color: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.summary-card h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+  color: #4a5568;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
+}
+
+/* Dark theme styles for summary cards */
+.dark-theme .summary-card {
+  background-color: var(--bg-tertiary);
+}
+
+.dark-theme .summary-card h3 {
+  color: var(--text-secondary);
+}
+
+.dark-theme .stat-value {
+  color: var(--text-primary);
+}
+
+/* Student search and filters */
+.student-search {
+  margin: 2rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.search-input {
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  font-size: 1rem;
+  width: 100%;
+}
+
+.filter-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.filter-group select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+}
+
+/* Student list container */
+.student-list-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Student list table */
+.student-list {
+  margin-top: 1.5rem;
+  overflow-x: auto;
+}
+
+.students-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.students-table th,
+.students-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+  text-align: left;
+}
+
+.students-table th {
+  font-weight: 600;
+  background-color: #f9f9f9;
+}
+
+.students-table tr:hover {
+  background-color: #f5f5f5;
+}
+
+.view-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  padding: 0.35rem 0.75rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.view-button:hover {
+  background-color: #2980b9;
+}
+
 /* Parent dashboard specific */
 .child-list {
   margin-top: 1rem;
@@ -232,54 +430,87 @@
   }
 }
 
-/* Dashboard summary */
-.dashboard-summary {
-  margin-bottom: 2rem;
+/* Dark theme adjustments */
+.dark-theme .sidebar,
+.dark-theme .content {
+  background-color: var(--bg-secondary);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
-.section-summary {
-  background-color: var(--bg-secondary, white);
-  border-radius: 8px;
-  padding: 1.5rem;
-  margin-top: 1.5rem;
-  box-shadow: var(--box-shadow, 0 2px 10px rgba(0, 0, 0, 0.1));
+.dark-theme .nav-menu li:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
-.section-summary h4 {
-  margin-bottom: 1rem;
-  color: var(--text-secondary, #7f8c8d);
-  font-size: 1.1rem;
+.dark-theme .nav-menu li.active {
+  background-color: var(--btn-primary-bg);
 }
 
-.section-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 1rem;
+.dark-theme .panel-header {
+  border-bottom-color: var(--border-color);
 }
 
-.section-card {
-  background-color: var(--sidebar-bg, white);
-  border-radius: 8px;
-  padding: 1rem;
-  text-align: center;
-  box-shadow: var(--box-shadow, 0 2px 5px rgba(0, 0, 0, 0.1));
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+.dark-theme .students-table th,
+.dark-theme .students-table td {
+  border-bottom: 1px solid var(--border-color);
 }
 
-.section-card:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--box-shadow, 0 4px 8px rgba(0, 0, 0, 0.15));
+.dark-theme .students-table th {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
-.section-card h5 {
-  margin-bottom: 0.5rem;
-  color: var(--accent-color, #3498db);
+.dark-theme .students-table tr:hover {
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
-.section-count {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary, #2c3e50);
+.dark-theme .search-input {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
 }
-/*  */
+
+.dark-theme .filter-group label {
+  color: var(--text-secondary);
+}
+
+.dark-theme .filter-group select {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .settings-tabs button {
+  background-color: var(--bg-tertiary);
+  color: var(--text-secondary);
+}
+
+.dark-theme .settings-tabs button.active {
+  background-color: var(--btn-primary-bg);
+  color: white;
+}
+
+.dark-theme .settings-content {
+  background-color: var(--bg-secondary);
+}
+
+.dark-theme .modal {
+  background-color: var(--bg-secondary);
+}
+
+.dark-theme .modal-header {
+  background-color: var(--bg-tertiary);
+}
+
+.dark-theme .modal-footer {
+  background-color: var(--bg-tertiary);
+  border-top-color: var(--border-color);
+}
+
+/* Make sure data persists during theme changes */
+.persist-data {
+  visibility: hidden;
+  position: absolute;
+  height: 0;
+  width: 0;
+  overflow: hidden;
+}

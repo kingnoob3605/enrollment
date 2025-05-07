@@ -202,3 +202,98 @@
 .terms-checkbox a:hover {
   text-decoration: underline !important;
 }
+
+/* Login help section */
+.login-help {
+  margin-top: 1.5rem;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 0.85rem;
+}
+
+.login-hint {
+  margin-bottom: 0.5rem;
+  color: #2c3e50;
+}
+
+.demo-accounts {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.demo-accounts li {
+  padding: 0.35rem 0.5rem;
+  background-color: rgba(52, 152, 219, 0.1);
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Dark mode styles */
+.dark-theme .login-container {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--bg-primary),
+    var(--bg-secondary)
+  );
+}
+
+.dark-theme .login-form-wrapper {
+  background-color: var(--bg-secondary);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.dark-theme .login-header h2 {
+  color: var(--text-primary);
+}
+
+.dark-theme .login-tab {
+  color: var(--text-secondary);
+}
+
+.dark-theme .login-tab.active {
+  color: var(--btn-primary-bg);
+}
+
+.dark-theme .login-tab.active::after {
+  background-color: var(--btn-primary-bg);
+}
+
+.dark-theme .login-tabs {
+  border-bottom-color: var(--border-color);
+}
+
+.dark-theme .form-control {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .remember-me label,
+.dark-theme .login-footer,
+.dark-theme .register-footer {
+  color: var(--text-tertiary);
+}
+
+.dark-theme .forgot-password,
+.dark-theme .switch-tab,
+.dark-theme .terms-checkbox a {
+  color: var(--btn-primary-bg) !important;
+}
+
+.dark-theme .login-help {
+  background-color: var(--bg-tertiary);
+}
+
+.dark-theme .login-hint {
+  color: var(--text-primary);
+}
+
+.dark-theme .demo-accounts li {
+  background-color: rgba(52, 152, 219, 0.2);
+  color: var(--text-primary);
+}

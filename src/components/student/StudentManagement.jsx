@@ -81,23 +81,7 @@ const getRandomName = () => {
 
 const StudentManagement = ({ userType }) => {
   // Define Grade 1 sections - assuming there are 15 teachers managing these sections
-  const grade1Sections = [
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-  ];
+  const grade1Sections = ["A", "B", "C", "D", "E"];
 
   // Generate random students for Grade 1 sections
   const generateGrade1Students = (count) => {

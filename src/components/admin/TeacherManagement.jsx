@@ -1,65 +1,114 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 const TeacherManagement = () => {
-  // Mock data - in a real app, this would come from an API
+  // Mock data with 5 teachers, each assigned to a section
   const [teachers, setTeachers] = useState([
     {
       id: 1,
-      name: "John Doe",
-      position: "Class Teacher",
+      name: "Maria Santos",
+      position: "Class Advisor",
       grade: "1",
       section: "A",
-      email: "john.doe@school.edu",
-      phone: "(123) 456-7890",
+      email: "maria.santos@school.edu",
+      phone: "(123) 456-7001",
+      subjects: ["English", "Science"],
     },
     {
       id: 2,
-      name: "Romyl S Magwate JR",
-      position: "Class Teacher",
-      grade: "2",
+      name: "Juan Dela Cruz",
+      position: "Class Advisor",
+      grade: "1",
       section: "B",
-      email: "jane.smith@school.edu",
-      phone: "(123) 456-7891",
+      email: "juan.delacruz@school.edu",
+      phone: "(123) 456-7002",
+      subjects: ["Mathematics", "Filipino"],
     },
     {
       id: 3,
-      name: "Brendo Dellatan",
-      position: "Subject Teacher",
-      grade: null,
-      section: null,
-      email: "robert.johnson@school.edu",
-      phone: "(123) 456-7892",
+      name: "Ana Reyes",
+      position: "Class Advisor",
+      grade: "1",
+      section: "C",
+      email: "ana.reyes@school.edu",
+      phone: "(123) 456-7003",
+      subjects: ["Social Studies", "Arts"],
+    },
+    {
+      id: 4,
+      name: "Pedro Lim",
+      position: "Class Advisor",
+      grade: "1",
+      section: "D",
+      email: "pedro.lim@school.edu",
+      phone: "(123) 456-7004",
+      subjects: ["Physical Education", "Health"],
+    },
+    {
+      id: 5,
+      name: "Sofia Garcia",
+      position: "Class Advisor",
+      grade: "1",
+      section: "E",
+      email: "sofia.garcia@school.edu",
+      phone: "(123) 456-7005",
+      subjects: ["Music", "Technology"],
     },
   ]);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
+  const [viewingTeacher, setViewingTeacher] = useState(null);
+
+  // Save teacher data to localStorage to persist across refreshes
+  useEffect(() => {
+    const savedTeachers = localStorage.getItem("teacherData");
+    if (savedTeachers) {
+      setTeachers(JSON.parse(savedTeachers));
+    }
+  }, []);
+
+  // Update localStorage when teachers change
+  useEffect(() => {
+    localStorage.setItem("teacherData", JSON.stringify(teachers));
+  }, [teachers]);
 
   // Filter teachers based on search term
   const filteredTeachers = teachers.filter(
     (teacher) =>
       teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchTerm.toLowerCase())
+      teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      teacher.section.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // New teacher form state
   const [formData, setFormData] = useState({
     name: "",
-    position: "Class Teacher",
-    grade: "",
+    position: "Class Advisor",
+    grade: "1",
     section: "",
     email: "",
     phone: "",
+    subjects: [],
   });
 
   // Handle form change
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+
+    if (name === "subjects") {
+      // Handle subjects as an array
+      const subjectsArray = value.split(",").map((subject) => subject.trim());
+      setFormData({
+        ...formData,
+        [name]: subjectsArray,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
   };
 
   // Handle form submission
@@ -87,11 +136,12 @@ const TeacherManagement = () => {
     // Reset form and close it
     setFormData({
       name: "",
-      position: "Class Teacher",
-      grade: "",
+      position: "Class Advisor",
+      grade: "1",
       section: "",
       email: "",
       phone: "",
+      subjects: [],
     });
     setShowAddForm(false);
   };
@@ -102,19 +152,108 @@ const TeacherManagement = () => {
     setFormData({
       name: teacher.name,
       position: teacher.position,
-      grade: teacher.grade || "",
+      grade: teacher.grade || "1",
       section: teacher.section || "",
       email: teacher.email,
       phone: teacher.phone,
+      subjects: teacher.subjects || [],
     });
     setShowAddForm(true);
+    setViewingTeacher(null);
+  };
+
+  // View teacher details
+  const handleView = (teacher) => {
+    setViewingTeacher(teacher);
+    setShowAddForm(false);
+    setEditingTeacher(null);
   };
 
   // Delete a teacher
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this teacher?")) {
       setTeachers(teachers.filter((teacher) => teacher.id !== id));
+      if (viewingTeacher && viewingTeacher.id === id) {
+        setViewingTeacher(null);
+      }
     }
+  };
+
+  // Render teacher profile
+  const renderTeacherProfile = () => {
+    if (!viewingTeacher) return null;
+
+    return (
+      <div className="teacher-profile">
+        <div className="profile-header">
+          <h2>{viewingTeacher.name}'s Profile</h2>
+          <button
+            onClick={() => setViewingTeacher(null)}
+            className="close-button"
+          >
+            Close
+          </button>
+        </div>
+
+        <div className="profile-sections">
+          <div className="profile-section">
+            <h3>Personal Information</h3>
+            <div className="profile-details">
+              <div className="detail-item">
+                <label>Name:</label>
+                <span>{viewingTeacher.name}</span>
+              </div>
+              <div className="detail-item">
+                <label>Position:</label>
+                <span>{viewingTeacher.position}</span>
+              </div>
+              <div className="detail-item">
+                <label>Grade & Section:</label>
+                <span>
+                  Grade {viewingTeacher.grade}, Section {viewingTeacher.section}
+                </span>
+              </div>
+              <div className="detail-item">
+                <label>Email:</label>
+                <span>{viewingTeacher.email}</span>
+              </div>
+              <div className="detail-item">
+                <label>Phone:</label>
+                <span>{viewingTeacher.phone}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="profile-section">
+            <h3>Teaching Information</h3>
+            <div className="profile-details">
+              <div className="detail-item">
+                <label>Subjects Taught:</label>
+                <span>{viewingTeacher.subjects.join(", ")}</span>
+              </div>
+              <div className="detail-item">
+                <label>Students:</label>
+                <span>{Math.floor(Math.random() * 10) + 25} students</span>
+              </div>
+              <div className="detail-item">
+                <label>Schedule:</label>
+                <span>Monday to Friday, 7:00 AM - 4:00 PM</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="profile-actions">
+          <button
+            onClick={() => handleEdit(viewingTeacher)}
+            className="edit-button"
+          >
+            Edit Information
+          </button>
+          <button className="print-button">Print Profile</button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -127,13 +266,15 @@ const TeacherManagement = () => {
             setEditingTeacher(null);
             setFormData({
               name: "",
-              position: "Class Teacher",
-              grade: "",
+              position: "Class Advisor",
+              grade: "1",
               section: "",
               email: "",
               phone: "",
+              subjects: [],
             });
             setShowAddForm(true);
+            setViewingTeacher(null);
           }}
         >
           Add New Teacher
@@ -163,48 +304,47 @@ const TeacherManagement = () => {
                 onChange={handleChange}
                 required
               >
-                <option value="Class Teacher">Class Teacher</option>
+                <option value="Class Advisor">Class Advisor</option>
                 <option value="Subject Teacher">Subject Teacher</option>
                 <option value="Department Head">Department Head</option>
               </select>
             </div>
 
-            {formData.position === "Class Teacher" && (
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Grade*:</label>
-                  <select
-                    name="grade"
-                    value={formData.grade}
-                    onChange={handleChange}
-                    required={formData.position === "Class Teacher"}
-                  >
-                    <option value="">Select Grade</option>
-                    <option value="1">Grade 1</option>
-                    <option value="2">Grade 2</option>
-                    <option value="3">Grade 3</option>
-                    <option value="4">Grade 4</option>
-                    <option value="5">Grade 5</option>
-                    <option value="6">Grade 6</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>Section*:</label>
-                  <select
-                    name="section"
-                    value={formData.section}
-                    onChange={handleChange}
-                    required={formData.position === "Class Teacher"}
-                  >
-                    <option value="">Select Section</option>
-                    <option value="A">Section A</option>
-                    <option value="B">Section B</option>
-                    <option value="C">Section C</option>
-                  </select>
-                </div>
+            <div className="form-row">
+              <div className="form-group">
+                <label>Grade*:</label>
+                <select
+                  name="grade"
+                  value={formData.grade}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="1">Grade 1</option>
+                  <option value="2">Grade 2</option>
+                  <option value="3">Grade 3</option>
+                  <option value="4">Grade 4</option>
+                  <option value="5">Grade 5</option>
+                  <option value="6">Grade 6</option>
+                </select>
               </div>
-            )}
+
+              <div className="form-group">
+                <label>Section*:</label>
+                <select
+                  name="section"
+                  value={formData.section}
+                  onChange={handleChange}
+                  required
+                >
+                  <option value="">Select Section</option>
+                  <option value="A">Section A</option>
+                  <option value="B">Section B</option>
+                  <option value="C">Section C</option>
+                  <option value="D">Section D</option>
+                  <option value="E">Section E</option>
+                </select>
+              </div>
+            </div>
 
             <div className="form-group">
               <label>Email*:</label>
@@ -228,13 +368,27 @@ const TeacherManagement = () => {
               />
             </div>
 
+            <div className="form-group">
+              <label>Subjects Taught (comma-separated):</label>
+              <input
+                type="text"
+                name="subjects"
+                value={formData.subjects.join(", ")}
+                onChange={handleChange}
+              />
+              <small>E.g. Mathematics, Science, English</small>
+            </div>
+
             <div className="form-actions">
               <button type="submit" className="submit-button">
                 {editingTeacher ? "Update Teacher" : "Add Teacher"}
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddForm(false)}
+                onClick={() => {
+                  setShowAddForm(false);
+                  setEditingTeacher(null);
+                }}
                 className="cancel-button"
               >
                 Cancel
@@ -242,12 +396,14 @@ const TeacherManagement = () => {
             </div>
           </form>
         </div>
+      ) : viewingTeacher ? (
+        renderTeacherProfile()
       ) : (
         <div className="teacher-list-container">
           <div className="search-box">
             <input
               type="text"
-              placeholder="Search teachers..."
+              placeholder="Search teachers by name, email or section..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input"
@@ -279,6 +435,12 @@ const TeacherManagement = () => {
                     <td>{teacher.email}</td>
                     <td>{teacher.phone}</td>
                     <td>
+                      <button
+                        onClick={() => handleView(teacher)}
+                        className="view-button"
+                      >
+                        View
+                      </button>
                       <button
                         onClick={() => handleEdit(teacher)}
                         className="edit-button"

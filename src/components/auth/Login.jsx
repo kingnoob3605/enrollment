@@ -49,27 +49,91 @@ const Login = () => {
 
     setIsLoading(true);
 
-    // In a real app, you would send a request to your backend
-    // For this demo, we're simulating a login with a timeout
+    // Get teacher data from localStorage if available
+    let teacherAccounts = [];
+    try {
+      const savedTeachers = localStorage.getItem("teacherData");
+      if (savedTeachers) {
+        const teachers = JSON.parse(savedTeachers);
+        // Create login accounts for each teacher
+        teacherAccounts = teachers.map((teacher) => ({
+          username: `teacher${teacher.section.toLowerCase()}`,
+          password: `teacher${teacher.section.toLowerCase()}123`,
+          id: teacher.id,
+          name: teacher.name,
+          section: teacher.section,
+        }));
+      }
+    } catch (error) {
+      console.error("Error loading teacher data:", error);
+      // If there's an error, use default teacher accounts
+      teacherAccounts = [
+        {
+          username: "teachera",
+          password: "teachera123",
+          id: 1,
+          name: "Maria Santos",
+          section: "A",
+        },
+        {
+          username: "teacherb",
+          password: "teacherb123",
+          id: 2,
+          name: "Juan Dela Cruz",
+          section: "B",
+        },
+        {
+          username: "teacherc",
+          password: "teacherc123",
+          id: 3,
+          name: "Ana Reyes",
+          section: "C",
+        },
+        {
+          username: "teacherd",
+          password: "teacherd123",
+          id: 4,
+          name: "Pedro Lim",
+          section: "D",
+        },
+        {
+          username: "teachere",
+          password: "teachere123",
+          id: 5,
+          name: "Sofia Garcia",
+          section: "E",
+        },
+      ];
+    }
+
+    // Default admin and parent accounts
+    const defaultAccounts = [
+      { username: "admin", password: "admin123", role: "admin", id: 100 },
+      { username: "parent", password: "parent123", role: "parent", id: 200 },
+    ];
+
+    // Combine teacher accounts and default accounts
+    const allAccounts = [
+      ...defaultAccounts,
+      ...teacherAccounts.map((t) => ({ ...t, role: "teacher" })),
+    ];
+
+    // Find matching account
+    const account = allAccounts.find(
+      (acc) =>
+        acc.username === credentials.username &&
+        acc.password === credentials.password
+    );
+
     setTimeout(() => {
-      // Simulate user verification logic
-      // Here we're hardcoding some test users for demo purposes
-      // In a real app, this would be handled by your backend API
-      if (
-        credentials.username === "admin" &&
-        credentials.password === "admin123"
-      ) {
-        loginSuccess({ username: credentials.username, id: 1 }, "admin");
-      } else if (
-        credentials.username === "teacher" &&
-        credentials.password === "teacher123"
-      ) {
-        loginSuccess({ username: credentials.username, id: 2 }, "teacher");
-      } else if (
-        credentials.username === "parent" &&
-        credentials.password === "parent123"
-      ) {
-        loginSuccess({ username: credentials.username, id: 3 }, "parent");
+      if (account) {
+        const userData = {
+          username: account.username,
+          id: account.id,
+          name: account.name,
+          section: account.section,
+        };
+        loginSuccess(userData, account.role);
       } else {
         setError("Invalid username or password");
         setIsLoading(false);
@@ -220,6 +284,35 @@ const Login = () => {
             <button type="submit" className="login-button" disabled={isLoading}>
               {isLoading ? "Logging in..." : "Log In"}
             </button>
+
+            <div className="login-help">
+              <p className="login-hint">
+                <strong>Demo Accounts:</strong>
+              </p>
+              <ul className="demo-accounts">
+                <li>
+                  <strong>Admin:</strong> admin / admin123
+                </li>
+                <li>
+                  <strong>Teacher A:</strong> teachera / teachera123
+                </li>
+                <li>
+                  <strong>Teacher B:</strong> teacherb / teacherb123
+                </li>
+                <li>
+                  <strong>Teacher C:</strong> teacherc / teacherc123
+                </li>
+                <li>
+                  <strong>Teacher D:</strong> teacherd / teacherd123
+                </li>
+                <li>
+                  <strong>Teacher E:</strong> teachere / teachere123
+                </li>
+                <li>
+                  <strong>Parent:</strong> parent / parent123
+                </li>
+              </ul>
+            </div>
 
             <div className="login-footer">
               <p>
