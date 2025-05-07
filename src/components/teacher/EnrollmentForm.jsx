@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 
-const EnrollmentForm = ({ onClose, onSave }) => {
+const EnrollmentForm = ({
+  onClose,
+  onSave,
+  defaultGrade = "1",
+  sections = ["A", "B", "C", "D", "E"],
+}) => {
   const [formData, setFormData] = useState({
     // SF1 Data
     lrn: "",
@@ -8,8 +13,8 @@ const EnrollmentForm = ({ onClose, onSave }) => {
     middleName: "",
     lastName: "",
     suffix: "",
-    grade: "1",
-    section: "A",
+    grade: defaultGrade, // Default to Grade 1
+    section: sections[0], // Default to first section
     birthdate: "",
     gender: "Male",
     address: "",
@@ -93,7 +98,7 @@ const EnrollmentForm = ({ onClose, onSave }) => {
   return (
     <div className="enrollment-form">
       <div className="form-header">
-        <h2>Student Enrollment Form</h2>
+        <h2>Grade 1 Student Enrollment Form</h2>
         {onClose && (
           <button onClick={onClose} className="close-button">
             Close
@@ -169,20 +174,14 @@ const EnrollmentForm = ({ onClose, onSave }) => {
 
             <div className="form-row">
               <div className="form-group">
-                <label>Grade Level*:</label>
-                <select
-                  name="grade"
-                  value={formData.grade}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="1">Grade 1</option>
-                  <option value="2">Grade 2</option>
-                  <option value="3">Grade 3</option>
-                  <option value="4">Grade 4</option>
-                  <option value="5">Grade 5</option>
-                  <option value="6">Grade 6</option>
-                </select>
+                <label>Grade Level:</label>
+                <input
+                  type="text"
+                  value="Grade 1"
+                  disabled
+                  className="form-control"
+                />
+                <input type="hidden" name="grade" value={formData.grade} />
               </div>
 
               <div className="form-group">
@@ -193,9 +192,11 @@ const EnrollmentForm = ({ onClose, onSave }) => {
                   onChange={handleChange}
                   required
                 >
-                  <option value="A">Section A</option>
-                  <option value="B">Section B</option>
-                  <option value="C">Section C</option>
+                  {sections.map((section) => (
+                    <option key={section} value={section}>
+                      Section {section}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>

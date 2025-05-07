@@ -1,0 +1,309 @@
+/* Theme variables */
+:root {
+  /* Light theme colors (default) */
+  --bg-primary: #f5f5f5;
+  --bg-secondary: #ffffff;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --border-color: #dddddd;
+  --accent-color: #2980b9;
+  --accent-hover: #3498db;
+  --error-color: #e74c3c;
+  --success-color: #27ae60;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --header-bg: #2c3e50;
+  --header-text: #ffffff;
+  --sidebar-bg: #ffffff;
+  --sidebar-active: #3498db;
+  --sidebar-hover: #f5f5f5;
+  --table-header-bg: #f9f9f9;
+  --table-row-hover: #f5f5f5;
+  --input-bg: #ffffff;
+  --input-text: #333333;
+  --input-border: #dddddd;
+  --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark theme */
+.dark-theme {
+  --bg-primary: #121212;
+  --bg-secondary: #1e1e1e;
+  --text-primary: #e0e0e0;
+  --text-secondary: #aaaaaa;
+  --border-color: #444444;
+  --accent-color: #3498db;
+  --accent-hover: #2980b9;
+  --error-color: #e74c3c;
+  --success-color: #2ecc71;
+  --warning-color: #f39c12;
+  --info-color: #3498db;
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --header-bg: #1a1a2e;
+  --header-text: #ffffff;
+  --sidebar-bg: #2c2c2c;
+  --sidebar-active: #3498db;
+  --sidebar-hover: #383838;
+  --table-header-bg: #2a2a2a;
+  --table-row-hover: #383838;
+  --input-bg: #2c2c2c;
+  --input-text: #e0e0e0;
+  --input-border: #444444;
+  --box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Apply theme variables */
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.header {
+  background-color: var(--header-bg);
+  color: var(--header-text);
+}
+
+.sidebar {
+  background-color: var(--sidebar-bg);
+  box-shadow: var(--box-shadow);
+  color: var(--text-primary);
+}
+
+.sidebar h3 {
+  color: var(--text-primary);
+}
+
+.nav-menu li {
+  color: var(--text-primary);
+}
+
+.nav-menu li:hover {
+  background-color: var(--sidebar-hover);
+}
+
+.nav-menu li.active {
+  background-color: var(--sidebar-active);
+  color: #ffffff;
+}
+
+.content {
+  background-color: var(--bg-secondary);
+  box-shadow: var(--box-shadow);
+  color: var(--text-primary);
+}
+
+.panel-header {
+  border-bottom-color: var(--border-color);
+}
+
+.panel-header h2 {
+  color: var(--text-primary);
+}
+
+/* Input styles */
+input,
+select,
+textarea,
+.form-control {
+  background-color: var(--input-bg);
+  color: var(--input-text);
+  border-color: var(--input-border);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus {
+  border-color: var(--accent-color);
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled,
+.form-control:disabled {
+  background-color: var(--bg-primary);
+  color: var(--text-secondary);
+  opacity: 0.6;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+/* Table styles */
+table {
+  color: var(--text-primary);
+}
+
+table th {
+  background-color: var(--table-header-bg);
+  color: var(--text-primary);
+}
+
+table tr:hover {
+  background-color: var(--table-row-hover);
+}
+
+table td {
+  border-bottom-color: var(--border-color);
+}
+
+/* Login styles */
+.login-container {
+  background-image: linear-gradient(
+    to bottom right,
+    var(--bg-primary),
+    var(--bg-secondary)
+  );
+}
+
+.login-form-wrapper {
+  background-color: var(--bg-secondary);
+  box-shadow: var(--box-shadow);
+}
+
+.login-header h2 {
+  color: var(--text-primary);
+}
+
+.login-tab {
+  color: var(--text-secondary);
+}
+
+.login-tab.active {
+  color: var(--accent-color);
+}
+
+.login-tab.active::after {
+  background-color: var(--accent-color);
+}
+
+.form-label,
+label {
+  color: var(--text-primary);
+}
+
+.form-group small {
+  color: var(--text-secondary);
+}
+
+/* Student profile */
+.profile-section h3,
+.form-section h3,
+.report-table-container h4 {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+.detail-item label {
+  color: var(--text-secondary);
+}
+
+/* Stat boxes */
+.stat-box {
+  background-color: var(--sidebar-bg);
+}
+
+.stat-box h4 {
+  color: var(--text-secondary);
+}
+
+.stat-value {
+  color: var(--text-primary);
+}
+
+/* Report components */
+.report-date,
+.report-table-container h4 {
+  color: var(--text-secondary);
+}
+
+.report-content h3 {
+  color: var(--text-primary);
+}
+
+.report-table-container {
+  background-color: var(--bg-secondary);
+}
+
+.report-controls {
+  background-color: var(--bg-secondary);
+}
+
+.filter-group label {
+  color: var(--text-primary);
+}
+
+.no-report-message,
+.loading-report {
+  color: var(--text-secondary);
+}
+
+/* Dashboard summary */
+.section-summary {
+  background-color: var(--bg-secondary);
+}
+
+.section-summary h4 {
+  color: var(--text-secondary);
+}
+
+.section-card {
+  background-color: var(--sidebar-bg);
+}
+
+.section-card h5 {
+  color: var(--accent-color);
+}
+
+.section-count {
+  color: var(--text-primary);
+}
+
+/* Theme toggle button */
+.theme-toggle {
+  background: none;
+  border: none;
+  color: var(--header-text);
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.theme-toggle svg {
+  margin-right: 0.5rem;
+}
+
+/* Light/Dark icons */
+.sun-icon,
+.moon-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.sun-icon {
+  color: #f39c12;
+}
+
+.moon-icon {
+  color: #f1c40f;
+}
+
+/* Error message */
+.error-message {
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
+
+.dark-theme .error-message {
+  background-color: rgba(231, 76, 60, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(231, 76, 60, 0.3);
+}
