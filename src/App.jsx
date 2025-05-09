@@ -16,6 +16,7 @@ import "./assets/styles/responsive.css";
 import "./assets/styles/utilities.css";
 import "./assets/styles/theme.css"; // Import our theme CSS
 import "./assets/styles/reports.css"; // Import reports-specific CSS
+import "./assets/styles/profile-tabs.css";
 
 function App() {
   // State for user authentication

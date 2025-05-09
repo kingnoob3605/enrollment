@@ -19,10 +19,29 @@ const StudentProfile = ({ student, onClose, viewOnly = false }) => {
       hearing: "Normal",
       vaccinations: "Complete",
     },
+    attendance: {
+      present: 42,
+      absent: 3,
+      late: 5,
+      rate: "93.3%",
+      history: [
+        { date: "2025-05-02", status: "Present" },
+        { date: "2025-05-01", status: "Present" },
+        { date: "2025-04-30", status: "Absent", reason: "Sick" },
+        { date: "2025-04-29", status: "Present" },
+        { date: "2025-04-28", status: "Present" },
+      ],
+    },
+    healthHistory: [
+      { date: "2025-05-01", height: 125, weight: 28, bmi: 17.9 },
+      { date: "2025-01-15", height: 123, weight: 27, bmi: 17.8 },
+      { date: "2024-09-05", height: 121, weight: 26, bmi: 17.7 },
+    ],
   });
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({ ...studentData });
+  const [activeTab, setActiveTab] = useState("personal"); // Default to personal tab
 
   // Handle changes in edit form
   const handleChange = (e) => {
@@ -80,6 +99,16 @@ const StudentProfile = ({ student, onClose, viewOnly = false }) => {
     setIsEditing(false);
   };
 
+  // Format date for display
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   return (
     <div className="student-profile">
       <div className="profile-header">
@@ -90,6 +119,36 @@ const StudentProfile = ({ student, onClose, viewOnly = false }) => {
           </button>
         )}
       </div>
+
+      {/* Profile Tabs */}
+      {!isEditing && (
+        <div className="profile-tabs">
+          <button
+            className={
+              activeTab === "personal" ? "tab-button active" : "tab-button"
+            }
+            onClick={() => setActiveTab("personal")}
+          >
+            Personal Information
+          </button>
+          <button
+            className={
+              activeTab === "health" ? "tab-button active" : "tab-button"
+            }
+            onClick={() => setActiveTab("health")}
+          >
+            Health Records
+          </button>
+          <button
+            className={
+              activeTab === "attendance" ? "tab-button active" : "tab-button"
+            }
+            onClick={() => setActiveTab("attendance")}
+          >
+            Attendance
+          </button>
+        </div>
+      )}
 
       {isEditing ? (
         // Edit form
@@ -292,81 +351,159 @@ const StudentProfile = ({ student, onClose, viewOnly = false }) => {
           </div>
         </div>
       ) : (
-        // View-only profile
-        <div className="profile-sections">
-          <div className="profile-section">
-            <h3>Personal Information (SF1)</h3>
-            <div className="profile-details">
-              <div className="detail-item">
-                <label>LRN:</label>
-                <span>{studentData.lrn}</span>
-              </div>
-              <div className="detail-item">
-                <label>Name:</label>
-                <span>{studentData.name}</span>
-              </div>
-              <div className="detail-item">
-                <label>Grade & Section:</label>
-                <span>
-                  Grade {studentData.grade}, Section {studentData.section}
-                </span>
-              </div>
-              <div className="detail-item">
-                <label>Birth Date:</label>
-                <span>{studentData.birthdate}</span>
-              </div>
-              <div className="detail-item">
-                <label>Gender:</label>
-                <span>{studentData.gender}</span>
-              </div>
-              <div className="detail-item">
-                <label>Address:</label>
-                <span>{studentData.address}</span>
-              </div>
-              <div className="detail-item">
-                <label>Parent/Guardian:</label>
-                <span>{studentData.parent}</span>
-              </div>
-              <div className="detail-item">
-                <label>Contact Number:</label>
-                <span>{studentData.contact}</span>
-              </div>
-              <div className="detail-item">
-                <label>Email:</label>
-                <span>{studentData.email}</span>
+        // View-only profile with tabs
+        <div className="profile-content">
+          {/* Personal Information Tab */}
+          {activeTab === "personal" && (
+            <div className="profile-section">
+              <h3>Personal Information (SF1)</h3>
+              <div className="profile-details">
+                <div className="detail-item">
+                  <label>LRN:</label>
+                  <span>{studentData.lrn}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Name:</label>
+                  <span>{studentData.name}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Grade & Section:</label>
+                  <span>
+                    Grade {studentData.grade}, Section {studentData.section}
+                  </span>
+                </div>
+                <div className="detail-item">
+                  <label>Birth Date:</label>
+                  <span>{studentData.birthdate}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Gender:</label>
+                  <span>{studentData.gender}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Address:</label>
+                  <span>{studentData.address}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Parent/Guardian:</label>
+                  <span>{studentData.parent}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Contact Number:</label>
+                  <span>{studentData.contact}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Email:</label>
+                  <span>{studentData.email}</span>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
-          <div className="profile-section">
-            <h3>Health Information (SF8)</h3>
-            <div className="profile-details">
-              <div className="detail-item">
-                <label>Height (cm):</label>
-                <span>{studentData.health.height}</span>
+          {/* Health Records Tab */}
+          {activeTab === "health" && (
+            <div className="profile-section">
+              <h3>Health Information (SF8)</h3>
+              <div className="profile-details">
+                <div className="detail-item">
+                  <label>Height (cm):</label>
+                  <span>{studentData.health.height}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Weight (kg):</label>
+                  <span>{studentData.health.weight}</span>
+                </div>
+                <div className="detail-item">
+                  <label>BMI:</label>
+                  <span>{studentData.health.bmi}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Vision:</label>
+                  <span>{studentData.health.vision}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Hearing:</label>
+                  <span>{studentData.health.hearing}</span>
+                </div>
+                <div className="detail-item">
+                  <label>Vaccinations:</label>
+                  <span>{studentData.health.vaccinations}</span>
+                </div>
               </div>
-              <div className="detail-item">
-                <label>Weight (kg):</label>
-                <span>{studentData.health.weight}</span>
-              </div>
-              <div className="detail-item">
-                <label>BMI:</label>
-                <span>{studentData.health.bmi}</span>
-              </div>
-              <div className="detail-item">
-                <label>Vision:</label>
-                <span>{studentData.health.vision}</span>
-              </div>
-              <div className="detail-item">
-                <label>Hearing:</label>
-                <span>{studentData.health.hearing}</span>
-              </div>
-              <div className="detail-item">
-                <label>Vaccinations:</label>
-                <span>{studentData.health.vaccinations}</span>
+
+              {/* Health History Timeline */}
+              <div className="health-history">
+                <h4>Health Check History</h4>
+                <div className="timeline">
+                  {studentData.healthHistory.map((record, index) => (
+                    <div className="timeline-item" key={index}>
+                      <div className="timeline-date">
+                        {formatDate(record.date)}
+                      </div>
+                      <div className="timeline-content">
+                        <p>
+                          Height: {record.height}cm, Weight: {record.weight}kg,
+                          BMI: {record.bmi}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Attendance Tab */}
+          {activeTab === "attendance" && (
+            <div className="profile-section">
+              <h3>Attendance Record</h3>
+
+              {/* Attendance Summary */}
+              <div className="attendance-summary">
+                <div className="stat-box">
+                  <h4>Present Days</h4>
+                  <p className="stat-value">{studentData.attendance.present}</p>
+                </div>
+                <div className="stat-box">
+                  <h4>Absent Days</h4>
+                  <p className="stat-value">{studentData.attendance.absent}</p>
+                </div>
+                <div className="stat-box">
+                  <h4>Late Days</h4>
+                  <p className="stat-value">{studentData.attendance.late}</p>
+                </div>
+                <div className="stat-box">
+                  <h4>Attendance Rate</h4>
+                  <p className="stat-value">{studentData.attendance.rate}</p>
+                </div>
+              </div>
+
+              {/* Attendance History */}
+              <div className="attendance-history">
+                <h4>Recent Attendance</h4>
+                <table className="attendance-table">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Reason (if absent)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {studentData.attendance.history.map((record, index) => (
+                      <tr key={index}>
+                        <td>{formatDate(record.date)}</td>
+                        <td className={`status-${record.status.toLowerCase()}`}>
+                          {record.status}
+                        </td>
+                        <td>{record.reason || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

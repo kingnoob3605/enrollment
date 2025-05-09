@@ -7,15 +7,25 @@ elementary-enrollment-system/
 │   ├── assets/
 │   │   ├── images/
 │   │   └── styles/
-│   │       └── index.css
+│   │       ├── index.css
+│   │       ├── dashboard.css
+│   │       ├── forms.css
+│   │       ├── login.css
+│   │       ├── reports.css
+│   │       ├── responsive.css
+│   │       ├── tables.css
+│   │       ├── theme.css
+│   │       └── utilities.css
 │   ├── components/
 │   │   ├── common/
 │   │   │   ├── Header.jsx
-│   │   │   └── Footer.jsx
+│   │   │   ├── Footer.jsx
+│   │   │   └── ThemeToggle.jsx
 │   │   ├── auth/
 │   │   │   └── Login.jsx
 │   │   ├── admin/
 │   │   │   ├── AdminDashboard.jsx
+│   │   │   ├── DashboardCharts.jsx
 │   │   │   ├── TeacherManagement.jsx
 │   │   │   ├── Reports.jsx
 │   │   │   └── Settings.jsx
@@ -28,7 +38,8 @@ elementary-enrollment-system/
 │   │       ├── StudentManagement.jsx
 │   │       └── StudentProfile.jsx
 │   ├── contexts/
-│   │   └── AuthContext.jsx
+│   │   ├── AuthContext.jsx
+│   │   └── ThemeContext.jsx
 │   ├── utils/
 │   │   ├── api.js
 │   │   └── helpers.js

@@ -9,6 +9,10 @@ const Reports = () => {
     endDate: "",
   });
 
+  // Add a new state to track if a report has been generated
+  const [reportGenerated, setReportGenerated] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
   // State for teacher data
   const [teachers, setTeachers] = useState([
     {
@@ -234,13 +238,23 @@ const Reports = () => {
   };
 
   const handleGenerateReport = () => {
-    // In a real app, this would trigger an API call to generate the report
-    console.log("Generating report:", {
-      type: reportType,
-      sectionFilter,
-      teacherFilter,
-      dateRange,
-    });
+    // Show loading state
+    setIsLoading(true);
+
+    // Simulate API call or data processing delay
+    setTimeout(() => {
+      // In a real app, this would trigger an API call to generate the report
+      console.log("Generating report:", {
+        type: reportType,
+        sectionFilter,
+        teacherFilter,
+        dateRange,
+      });
+
+      // Set reportGenerated to true to show the report content
+      setReportGenerated(true);
+      setIsLoading(false);
+    }, 1000); // Simulate 1-second processing time
   };
 
   const handlePrint = () => {
@@ -265,7 +279,10 @@ const Reports = () => {
           <label>Report Type</label>
           <select
             value={reportType}
-            onChange={(e) => setReportType(e.target.value)}
+            onChange={(e) => {
+              setReportType(e.target.value);
+              setReportGenerated(false); // Reset when changing report type
+            }}
           >
             <option value="enrollment">Enrollment Summary</option>
             <option value="attendance">Attendance Report</option>
@@ -278,7 +295,10 @@ const Reports = () => {
             <label>Section</label>
             <select
               value={sectionFilter}
-              onChange={(e) => setSectionFilter(e.target.value)}
+              onChange={(e) => {
+                setSectionFilter(e.target.value);
+                setReportGenerated(false); // Reset when changing filter
+              }}
             >
               <option value="all">All Sections</option>
               <option value="A">Section A</option>
@@ -293,7 +313,10 @@ const Reports = () => {
             <label>Teacher</label>
             <select
               value={teacherFilter}
-              onChange={(e) => setTeacherFilter(e.target.value)}
+              onChange={(e) => {
+                setTeacherFilter(e.target.value);
+                setReportGenerated(false); // Reset when changing filter
+              }}
             >
               <option value="all">All Teachers</option>
               {teachers.map((teacher) => (
@@ -325,159 +348,201 @@ const Reports = () => {
           </div>
         </div>
 
-        <button onClick={handleGenerateReport} className="generate-button">
-          Generate Report
+        <button
+          onClick={handleGenerateReport}
+          className="generate-button"
+          disabled={isLoading}
+        >
+          {isLoading ? "Generating..." : "Generate Report"}
         </button>
       </div>
 
-      <div className="report-content">
-        {reportType === "enrollment" && reportData && (
-          <div className="enrollment-report">
-            <h3>Grade 1 Enrollment Summary Report</h3>
-            <p className="report-date">
-              Generated on: {new Date().toLocaleDateString()}
-            </p>
+      {isLoading ? (
+        <div className="loading-report">
+          <div className="loader"></div>
+          <p>Generating report...</p>
+        </div>
+      ) : !reportGenerated ? (
+        <div className="no-report-message">
+          <p>
+            Select your report criteria and click 'Generate Report' to view the
+            data.
+          </p>
+        </div>
+      ) : (
+        <div className="report-content">
+          {reportType === "enrollment" && reportData && (
+            <div className="enrollment-report">
+              <h3>Grade 1 Enrollment Summary Report</h3>
+              <p className="report-date">
+                Generated on: {new Date().toLocaleDateString()}
+              </p>
 
-            <div className="summary-stats">
-              <div className="stat-box">
-                <h4>Total Students</h4>
-                <p className="stat-value">{reportData.totalStudents}</p>
+              <div className="summary-stats">
+                <div className="stat-box">
+                  <h4>Total Students</h4>
+                  <p className="stat-value">{reportData.totalStudents}</p>
+                </div>
+                <div className="stat-box">
+                  <h4>Male</h4>
+                  <p className="stat-value">{reportData.byGender.male}</p>
+                </div>
+                <div className="stat-box">
+                  <h4>Female</h4>
+                  <p className="stat-value">{reportData.byGender.female}</p>
+                </div>
               </div>
-              <div className="stat-box">
-                <h4>Male</h4>
-                <p className="stat-value">{reportData.byGender.male}</p>
-              </div>
-              <div className="stat-box">
-                <h4>Female</h4>
-                <p className="stat-value">{reportData.byGender.female}</p>
-              </div>
-            </div>
 
-            <div className="enrollment-tables">
-              <div className="section-enrollment">
-                <h4>Enrollment by Section</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Section</th>
-                      <th>Total</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.bySection.map((item) => (
-                      <tr key={item.section}>
-                        <td>Section {item.section}</td>
-                        <td>{item.count}</td>
+              <div className="enrollment-tables">
+                <div className="section-enrollment">
+                  <h4>Enrollment by Section</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Section</th>
+                        <th>Total</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {reportData.bySection.map((item) => (
+                        <tr key={item.section}>
+                          <td>Section {item.section}</td>
+                          <td>{item.count}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {reportType === "attendance" && reportData && (
-          <div className="attendance-report">
-            <h3>Grade 1 Attendance Report</h3>
-            <p className="report-date">
-              Generated on: {new Date().toLocaleDateString()}
-            </p>
+          {reportType === "attendance" && reportData && (
+            <div className="attendance-report">
+              <h3>Grade 1 Attendance Report</h3>
+              <p className="report-date">
+                Generated on: {new Date().toLocaleDateString()}
+              </p>
 
-            <div className="summary-stats">
-              <div className="stat-box">
-                <h4>Total Students</h4>
-                <p className="stat-value">{reportData.summary.totalStudents}</p>
+              <div className="summary-stats">
+                <div className="stat-box">
+                  <h4>Total Students</h4>
+                  <p className="stat-value">
+                    {reportData.summary.totalStudents}
+                  </p>
+                </div>
+                <div className="stat-box">
+                  <h4>Average Attendance</h4>
+                  <p className="stat-value">
+                    {reportData.summary.averageAttendance}%
+                  </p>
+                </div>
               </div>
-              <div className="stat-box">
-                <h4>Average Attendance</h4>
-                <p className="stat-value">
-                  {reportData.summary.averageAttendance}%
-                </p>
-              </div>
-            </div>
 
-            <div className="attendance-tables">
-              <div className="section-attendance">
-                <h4>Attendance by Section</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Section</th>
-                      <th>Teacher</th>
-                      <th>Students</th>
-                      <th>Attendance Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.bySection.map((item) => (
-                      <tr key={item.section}>
-                        <td>Section {item.section}</td>
-                        <td>{item.teacher}</td>
-                        <td>{item.students}</td>
-                        <td>{item.attendance}%</td>
+              <div className="attendance-tables">
+                <div className="section-attendance">
+                  <h4>Attendance by Section</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Section</th>
+                        <th>Teacher</th>
+                        <th>Students</th>
+                        <th>Attendance Rate</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {reportData.bySection.map((item) => (
+                        <tr key={item.section}>
+                          <td>Section {item.section}</td>
+                          <td>{item.teacher}</td>
+                          <td>{item.students}</td>
+                          <td>{item.attendance}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {reportType === "teachers" && reportData && (
-          <div className="teacher-report">
-            <h3>Grade 1 Teacher Performance Report</h3>
-            <p className="report-date">
-              Generated on: {new Date().toLocaleDateString()}
-            </p>
+          {reportType === "teachers" && reportData && (
+            <div className="teacher-report">
+              <h3>Grade 1 Teacher Performance Report</h3>
+              <p className="report-date">
+                Generated on: {new Date().toLocaleDateString()}
+              </p>
 
-            <div className="summary-stats">
-              <div className="stat-box">
-                <h4>Average Performance Score</h4>
-                <p className="stat-value">{reportData.averagePerformance}%</p>
+              <div className="summary-stats">
+                <div className="stat-box">
+                  <h4>Average Performance Score</h4>
+                  <p className="stat-value">{reportData.averagePerformance}%</p>
+                </div>
               </div>
-            </div>
 
-            <div className="teacher-tables">
-              <div className="teacher-performance">
-                <h4>Teacher Performance by Section</h4>
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Teacher</th>
-                      <th>Section</th>
-                      <th>Students</th>
-                      <th>Attendance</th>
-                      <th>Performance</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {reportData.teachers.map((teacher) => (
-                      <tr key={teacher.id}>
-                        <td>{teacher.name}</td>
-                        <td>Section {teacher.section}</td>
-                        <td>{teacher.students}</td>
-                        <td>{teacher.attendance}%</td>
-                        <td>{teacher.performance}%</td>
+              <div className="teacher-tables">
+                <div className="teacher-performance">
+                  <h4>Teacher Performance by Section</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Teacher</th>
+                        <th>Section</th>
+                        <th>Students</th>
+                        <th>Attendance</th>
+                        <th>Performance</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {reportData.teachers.map((teacher) => (
+                        <tr key={teacher.id}>
+                          <td>{teacher.name}</td>
+                          <td>Section {teacher.section}</td>
+                          <td>{teacher.students}</td>
+                          <td>{teacher.attendance}%</td>
+                          <td>{teacher.performance}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
 
-      <div className="report-actions">
-        <button onClick={handlePrint} className="print-button">
-          Print Report
-        </button>
-        <button onClick={handleExport} className="export-button">
-          Export Report
-        </button>
-      </div>
+          {reportGenerated && (
+            <div className="report-actions">
+              <button onClick={handlePrint} className="print-button">
+                Print Report
+              </button>
+              <button onClick={handleExport} className="export-button">
+                Export Report
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Add these styles for the loading and no-report states */}
+      <style jsx="true">{`
+        .loading-report {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          padding: 3rem;
+        }
+
+        .no-report-message {
+          text-align: center;
+          padding: 3rem;
+          color: var(--text-secondary, #7f8c8d);
+          background-color: var(--bg-secondary, white);
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+      `}</style>
     </div>
   );
 };
