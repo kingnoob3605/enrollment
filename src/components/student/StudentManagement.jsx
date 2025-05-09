@@ -1,6 +1,19 @@
 import React, { useState, useEffect } from "react";
 import StudentProfile from "./StudentProfile";
 import EnrollmentForm from "../teacher/EnrollmentForm";
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 
 // Helper function to generate random LRN (12 digits)
 const generateRandomLRN = () => {
@@ -91,16 +104,51 @@ const StudentManagement = ({ userType }) => {
     for (let i = 0; i < count; i++) {
       const section =
         grade1Sections[Math.floor(Math.random() * grade1Sections.length)];
+      const gender = Math.random() > 0.5 ? "Male" : "Female";
+
+      // Generate health metrics appropriate for grade 1 students
+      const height =
+        gender === "Male"
+          ? Math.floor(Math.random() * 15) + 110 // 110-125 cm for boys
+          : Math.floor(Math.random() * 15) + 108; // 108-123 cm for girls
+
+      const weight =
+        gender === "Male"
+          ? Math.floor(Math.random() * 10) + 18 // 18-28 kg for boys
+          : Math.floor(Math.random() * 10) + 17; // 17-27 kg for girls
+
+      // Calculate BMI
+      const heightInMeters = height / 100;
+      const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
+
+      // Determine nutritional status based on BMI
+      let nutritionalStatus;
+      if (bmi < 14) nutritionalStatus = "Severely Underweight";
+      else if (bmi < 15) nutritionalStatus = "Underweight";
+      else if (bmi < 18.5) nutritionalStatus = "Normal";
+      else if (bmi < 21) nutritionalStatus = "Overweight";
+      else nutritionalStatus = "Obese";
 
       students.push({
         id: i + 1,
         name: getRandomName(),
         grade: "1", // Focus on Grade 1
         section: section,
+        gender: gender,
         lrn: generateRandomLRN(),
         status: "Enrolled",
         dateEnrolled: "07/29/24",
         teacherAssigned: `Teacher ${section}`, // Each section has a designated teacher
+        health: {
+          height: height,
+          weight: weight,
+          bmi: bmi,
+          nutritionalStatus: nutritionalStatus,
+          vision: Math.random() > 0.9 ? "Needs Correction" : "Normal",
+          hearing: Math.random() > 0.97 ? "Needs Assistance" : "Normal",
+          vaccinations: Math.random() > 0.92 ? "Incomplete" : "Complete",
+          dentalHealth: Math.random() > 0.8 ? "Needs Attention" : "Good",
+        },
       });
     }
 
@@ -115,6 +163,77 @@ const StudentManagement = ({ userType }) => {
   const [filterSection, setFilterSection] = useState("");
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [showCharts, setShowCharts] = useState(true);
+
+  // Prepare data for charts
+  const [enrollmentData, setEnrollmentData] = useState([]);
+  const [genderData, setGenderData] = useState([]);
+  const [bmiData, setBmiData] = useState([]);
+
+  // Colors for charts
+  const COLORS = [
+    "#0088FE",
+    "#00C49F",
+    "#FFBB28",
+    "#FF8042",
+    "#8884D8",
+    "#82CA9D",
+  ];
+
+  // Update chart data when students data changes
+  useEffect(() => {
+    if (students && students.length > 0) {
+      // Prepare enrollment by section data
+      const sectionCounts = {};
+      grade1Sections.forEach((section) => {
+        sectionCounts[section] = 0;
+      });
+
+      students.forEach((student) => {
+        if (sectionCounts.hasOwnProperty(student.section)) {
+          sectionCounts[student.section]++;
+        }
+      });
+
+      const sectionData = Object.keys(sectionCounts).map((section) => ({
+        name: `Section ${section}`,
+        students: sectionCounts[section],
+      }));
+
+      setEnrollmentData(sectionData);
+
+      // Prepare gender distribution data
+      const maleCount = students.filter((s) => s.gender === "Male").length;
+      const femaleCount = students.filter((s) => s.gender === "Female").length;
+
+      setGenderData([
+        { name: "Male", value: maleCount },
+        { name: "Female", value: femaleCount },
+      ]);
+
+      // Calculate BMI categories
+      const bmiCategories = {
+        "Severely Underweight": 0,
+        Underweight: 0,
+        Normal: 0,
+        Overweight: 0,
+        Obese: 0,
+      };
+
+      students.forEach((student) => {
+        if (student.health && student.health.nutritionalStatus) {
+          bmiCategories[student.health.nutritionalStatus]++;
+        }
+      });
+
+      setBmiData(
+        Object.keys(bmiCategories).map((category) => ({
+          name: category,
+          value: bmiCategories[category],
+        }))
+      );
+    }
+  }, [students]);
 
   // Get list of teachers for filtering
   const teachers = Array.from(
@@ -168,25 +287,49 @@ const StudentManagement = ({ userType }) => {
     <div className="student-management">
       <div className="panel-header">
         <h2>Grade 1 Student Management</h2>
-        {(userType === "admin" || userType === "teacher") && (
-          <button
-            className="add-button"
-            onClick={() => {
-              setSelectedStudent(null);
-              setShowAddForm(true);
-            }}
-          >
-            Add New Student
-          </button>
-        )}
+        <div className="panel-actions">
+          {(userType === "admin" || userType === "teacher") && (
+            <button
+              className="add-button"
+              onClick={() => {
+                setSelectedStudent(null);
+                setShowAddForm(true);
+              }}
+            >
+              Add New Student
+            </button>
+          )}
+          {!showAddForm && !selectedStudent && (
+            <button
+              className="view-button"
+              onClick={() => setShowCharts(!showCharts)}
+            >
+              {showCharts ? "Hide Charts" : "Show Charts"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Grade 1 Dashboard Summary */}
       {!showAddForm && !selectedStudent && (
         <div className="dashboard-summary">
-          <div className="stat-box">
-            <h4>Total Grade 1 Students</h4>
-            <p className="stat-value">{totalStudents}</p>
+          <div className="summary-stats">
+            <div className="stat-box">
+              <h4>Total Grade 1 Students</h4>
+              <p className="stat-value">{totalStudents}</p>
+            </div>
+            <div className="stat-box">
+              <h4>Male Students</h4>
+              <p className="stat-value">
+                {students.filter((s) => s.gender === "Male").length}
+              </p>
+            </div>
+            <div className="stat-box">
+              <h4>Female Students</h4>
+              <p className="stat-value">
+                {students.filter((s) => s.gender === "Female").length}
+              </p>
+            </div>
           </div>
 
           <div className="section-summary">
@@ -199,11 +342,77 @@ const StudentManagement = ({ userType }) => {
                   onClick={() => setFilterSection(section)}
                 >
                   <h5>Section {section}</h5>
-                  <p className="section-count">{studentsBySection[section]}</p>
+                  <p className="section-count">
+                    {studentsBySection[section] || 0}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* Dashboard Charts */}
+          {showCharts && (
+            <div className="dashboard-charts">
+              <div className="charts-row">
+                <div className="chart-container">
+                  <h4>Enrollment by Section</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={enrollmentData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="students" fill="#8884d8" name="Students" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                <div className="chart-container">
+                  <h4>Gender Distribution</h4>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={genderData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={true}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) =>
+                          `${name}: ${(percent * 100).toFixed(0)}%`
+                        }
+                      >
+                        {genderData.map((entry, index) => (
+                          <Cell
+                            key={`cell-${index}`}
+                            fill={COLORS[index % COLORS.length]}
+                          />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value) => [value, "Students"]} />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="chart-container">
+                <h4>Nutritional Status (BMI Categories)</h4>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={bmiData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey="value" fill="#82ca9d" name="Students" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -322,6 +531,47 @@ const StudentManagement = ({ userType }) => {
           </table>
         </div>
       )}
+
+      {/* Add CSS for the charts layout */}
+      <style jsx="true">{`
+        .panel-actions {
+          display: flex;
+          gap: 1rem;
+        }
+
+        .dashboard-charts {
+          margin-top: 2rem;
+        }
+
+        .charts-row {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1.5rem;
+          margin-bottom: 1.5rem;
+        }
+
+        .chart-container {
+          flex: 1;
+          min-width: 300px;
+          background-color: var(--bg-secondary, white);
+          border-radius: 8px;
+          padding: 1.5rem;
+          box-shadow: var(--box-shadow, 0 2px 5px rgba(0, 0, 0, 0.1));
+          margin-bottom: 1.5rem;
+        }
+
+        .chart-container h4 {
+          margin-bottom: 1rem;
+          color: var(--text-secondary, #7f8c8d);
+          text-align: center;
+        }
+
+        @media (max-width: 768px) {
+          .charts-row {
+            flex-direction: column;
+          }
+        }
+      `}</style>
     </div>
   );
 };

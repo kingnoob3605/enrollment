@@ -69,3 +69,6 @@ https://youtu.be/zuyH4QUuTZk?si=IhzqtCEmWV2clJ3W
 ## Need More Help?
 
 Reach out to your team lead if you need additional assistance.
+
+extension
+npm install recharts
