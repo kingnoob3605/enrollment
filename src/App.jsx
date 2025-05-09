@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AuthContext } from "./contexts/AuthContext";
-import { ThemeProvider } from "./contexts/ThemeContext"; // Import ThemeProvider
+import { ThemeProvider } from "./contexts/ThemeContext";
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
 import Login from "./components/auth/Login";
@@ -14,9 +14,11 @@ import "./assets/styles/forms.css";
 import "./assets/styles/tables.css";
 import "./assets/styles/responsive.css";
 import "./assets/styles/utilities.css";
-import "./assets/styles/theme.css"; // Import our theme CSS
-import "./assets/styles/reports.css"; // Import reports-specific CSS
+import "./assets/styles/theme.css";
+import "./assets/styles/reports.css";
 import "./assets/styles/profile-tabs.css";
+import "./assets/styles/print.css";
+import "./assets/styles/export.css";
 
 function App() {
   // State for user authentication

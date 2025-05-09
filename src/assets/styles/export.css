@@ -1,0 +1,101 @@
+/* Styles for export functionality */
+.export-button {
+  background-color: #27ae60;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+}
+
+.export-button:hover {
+  background-color: #2ecc71;
+}
+
+.export-button:active {
+  transform: translateY(1px);
+}
+
+.export-button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+.export-button .export-icon {
+  font-size: 1.1rem;
+}
+
+.export-options {
+  display: flex;
+  gap: 10px;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.sf-form-preview {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1rem;
+  background-color: #f9f9f9;
+}
+
+.sf-form-preview h4 {
+  margin-bottom: 1rem;
+  color: #2c3e50;
+  font-size: 1rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 0.5rem;
+}
+
+.sf-form-preview p {
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+/* Dark theme support */
+.dark-theme .export-button {
+  background-color: var(--btn-success-bg);
+}
+
+.dark-theme .export-button:hover {
+  background-color: #2ecc71;
+}
+
+.dark-theme .sf-form-preview {
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-color);
+}
+
+.dark-theme .sf-form-preview h4 {
+  color: var(--text-primary);
+  border-bottom-color: var(--border-color);
+}
+
+.dark-theme .sf-form-preview p {
+  color: var(--text-secondary);
+}
+
+/* Loading indicator for export process */
+.export-loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: white;
+  animation: spin 1s ease-in-out infinite;
+  margin-right: 8px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

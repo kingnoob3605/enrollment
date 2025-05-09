@@ -70,5 +70,7 @@ https://youtu.be/zuyH4QUuTZk?si=IhzqtCEmWV2clJ3W
 
 Reach out to your team lead if you need additional assistance.
 
-extension
+## Extension
+
 npm install recharts
+npm install xlsx

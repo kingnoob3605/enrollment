@@ -2,6 +2,8 @@ import React, { useState, useEffect, useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
 import StudentProfile from "./StudentProfile";
 import EnrollmentForm from "../teacher/EnrollmentForm";
+import printStudentProfile from "../../utils/printStudentProfile";
+import exportStudentListToExcel from "../../utils/exportStudentListToExcel";
 import {
   BarChart,
   Bar,
@@ -318,122 +320,66 @@ const StudentManagement = ({ userType }) => {
     setShowAddForm(false);
   };
 
-  // Print student profile
+  // Handle printing student profile
   const handlePrintStudentProfile = () => {
     if (!selectedStudent) return;
 
     const student = students.find((s) => s.id === selectedStudent);
     if (!student) return;
 
-    // Create a new window with the student's profile formatted for printing
-    const printWindow = window.open("", "_blank");
+    // Use the imported utility function
+    printStudentProfile(student);
+  };
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>Student Profile - ${student.name}</title>
-          <style>
-            body { font-family: Arial, sans-serif; padding: 20px; line-height: 1.6; }
-            h1, h2, h3 { color: #333; }
-            .profile-header { margin-bottom: 20px; text-align: center; border-bottom: 1px solid #ddd; padding-bottom: 10px; }
-            .profile-section { margin-bottom: 20px; }
-            .profile-section h3 { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
-            .detail-item { display: flex; margin-bottom: 8px; }
-            .detail-item label { width: 150px; font-weight: bold; color: #666; }
-            @media print {
-              body { padding: 0; }
-              button { display: none; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="profile-header">
-            <h1>${student.name}'s Profile</h1>
-            <p>Grade 1-${student.section} | LRN: ${student.lrn}</p>
-            <p>Date: ${new Date().toLocaleDateString()}</p>
-          </div>
-          
-          <div class="profile-section">
-            <h3>Personal Information (SF1)</h3>
-            <div class="profile-details">
-              <div class="detail-item">
-                <label>LRN:</label>
-                <span>${student.lrn}</span>
-              </div>
-              <div class="detail-item">
-                <label>Name:</label>
-                <span>${student.name}</span>
-              </div>
-              <div class="detail-item">
-                <label>Grade & Section:</label>
-                <span>Grade ${student.grade}, Section ${student.section}</span>
-              </div>
-              <div class="detail-item">
-                <label>Gender:</label>
-                <span>${student.gender}</span>
-              </div>
-              <div class="detail-item">
-                <label>Status:</label>
-                <span>${student.status}</span>
-              </div>
-              <div class="detail-item">
-                <label>Enrollment Date:</label>
-                <span>${student.dateEnrolled}</span>
-              </div>
-              <div class="detail-item">
-                <label>Teacher:</label>
-                <span>${student.teacherAssigned}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="profile-section">
-            <h3>Health Information (SF8)</h3>
-            <div class="profile-details">
-              <div class="detail-item">
-                <label>Height (cm):</label>
-                <span>${student.health.height}</span>
-              </div>
-              <div class="detail-item">
-                <label>Weight (kg):</label>
-                <span>${student.health.weight}</span>
-              </div>
-              <div class="detail-item">
-                <label>BMI:</label>
-                <span>${student.health.bmi}</span>
-              </div>
-              <div class="detail-item">
-                <label>Nutritional Status:</label>
-                <span>${student.health.nutritionalStatus}</span>
-              </div>
-              <div class="detail-item">
-                <label>Vision:</label>
-                <span>${student.health.vision}</span>
-              </div>
-              <div class="detail-item">
-                <label>Hearing:</label>
-                <span>${student.health.hearing}</span>
-              </div>
-              <div class="detail-item">
-                <label>Vaccinations:</label>
-                <span>${student.health.vaccinations}</span>
-              </div>
-              <div class="detail-item">
-                <label>Dental Health:</label>
-                <span>${student.health.dentalHealth}</span>
-              </div>
-            </div>
-          </div>
-          
-          <div style="text-align: center; margin-top: 30px;">
-            <button onclick="window.print()">Print</button>
-          </div>
-        </body>
-      </html>
-    `);
+  // Handle Excel export
+  const handleExportToExcel = () => {
+    // Prepare school info
+    const schoolInfo = {
+      schoolName: "Elementary School Learners Profile System",
+      schoolId: "12345",
+      division: "Zamboanga City",
+      district: "District 1",
+      schoolYear: "2024-2025",
+    };
 
-    printWindow.document.close();
-    printWindow.focus();
+    // Get the section - for teachers, use their assigned section, for admin, use the filter
+    const sectionToExport =
+      userType === "teacher" && currentUser && currentUser.section
+        ? currentUser.section
+        : filterSection || "All";
+
+    // Get students to export - filter by section if needed
+    const studentsToExport =
+      sectionToExport !== "All" ? filteredStudents : students;
+
+    // Process students to include all necessary fields
+    const processedStudents = studentsToExport.map((student) => {
+      // Calculate age from birthdate if available
+      let age = "";
+      if (student.birthdate) {
+        const birthDate = new Date(student.birthdate);
+        const today = new Date();
+        age = today.getFullYear() - birthDate.getFullYear();
+      }
+
+      // Return processed student with all fields needed for SF1
+      return {
+        ...student,
+        age,
+        motherTongue: "Filipino", // Default
+        religion: "Catholic", // Default
+        motherName: "", // These fields may not be in your data
+        ip: "", // Defaults or empty
+      };
+    });
+
+    // Call the export function
+    exportStudentListToExcel(
+      processedStudents,
+      schoolInfo,
+      sectionToExport,
+      "1" // Grade level
+    );
   };
 
   // Get counts for dashboard
@@ -470,12 +416,20 @@ const StudentManagement = ({ userType }) => {
             </button>
           )}
           {!showAddForm && !selectedStudent && (
-            <button
-              className="view-button"
-              onClick={() => setShowCharts(!showCharts)}
-            >
-              {showCharts ? "Hide Charts" : "Show Charts"}
-            </button>
+            <>
+              <button
+                className="view-button"
+                onClick={() => setShowCharts(!showCharts)}
+              >
+                {showCharts ? "Hide Charts" : "Show Charts"}
+              </button>
+              {/* Excel export button */}
+              {(userType === "admin" || userType === "teacher") && (
+                <button className="export-button" onClick={handleExportToExcel}>
+                  Export to SF1 Excel
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
@@ -742,46 +696,6 @@ const StudentManagement = ({ userType }) => {
           </table>
         </div>
       )}
-
-      <style jsx="true">{`
-        .panel-actions {
-          display: flex;
-          gap: 1rem;
-        }
-
-        .dashboard-charts {
-          margin-top: 2rem;
-        }
-
-        .charts-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 1.5rem;
-          margin-bottom: 1.5rem;
-        }
-
-        .chart-container {
-          flex: 1;
-          min-width: 300px;
-          background-color: var(--bg-secondary, white);
-          border-radius: 8px;
-          padding: 1.5rem;
-          box-shadow: var(--box-shadow, 0 2px 5px rgba(0, 0, 0, 0.1));
-          margin-bottom: 1.5rem;
-        }
-
-        .chart-container h4 {
-          margin-bottom: 1rem;
-          color: var(--text-secondary, #7f8c8d);
-          text-align: center;
-        }
-
-        @media (max-width: 768px) {
-          .charts-row {
-            flex-direction: column;
-          }
-        }
-      `}</style>
     </div>
   );
 };
