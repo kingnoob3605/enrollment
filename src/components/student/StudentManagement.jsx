@@ -406,7 +406,7 @@ const StudentManagement = ({ userType }) => {
         <div className="panel-actions">
           {(userType === "admin" || userType === "teacher") && (
             <button
-              className="add-button"
+              className="action-btn add-button"
               onClick={() => {
                 setSelectedStudent(null);
                 setShowAddForm(true);
@@ -418,14 +418,17 @@ const StudentManagement = ({ userType }) => {
           {!showAddForm && !selectedStudent && (
             <>
               <button
-                className="view-button"
+                className="action-btn view-button"
                 onClick={() => setShowCharts(!showCharts)}
               >
                 {showCharts ? "Hide Charts" : "Show Charts"}
               </button>
               {/* Excel export button */}
               {(userType === "admin" || userType === "teacher") && (
-                <button className="export-button" onClick={handleExportToExcel}>
+                <button
+                  className="action-btn export-button"
+                  onClick={handleExportToExcel}
+                >
                   Export to SF1 Excel
                 </button>
               )}

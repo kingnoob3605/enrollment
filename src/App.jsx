@@ -18,7 +18,6 @@ import "./assets/styles/theme.css";
 import "./assets/styles/reports.css";
 import "./assets/styles/profile-tabs.css";
 import "./assets/styles/print.css";
-import "./assets/styles/export.css";
 
 function App() {
   // State for user authentication
