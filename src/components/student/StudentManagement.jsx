@@ -17,6 +17,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
+import api from "../../utils/api";
 
 // Helper function to generate random LRN (12 digits)
 const generateRandomLRN = () => {

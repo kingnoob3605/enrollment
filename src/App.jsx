@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { AuthContext } from "./contexts/AuthContext";
+import { AuthProvider } from "./contexts/AuthContext"; // Add this import
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
@@ -20,46 +21,21 @@ import "./assets/styles/profile-tabs.css";
 import "./assets/styles/print.css";
 
 function App() {
-  // State for user authentication
-  const [currentUser, setCurrentUser] = useState(null);
-  const [userType, setUserType] = useState(null);
-  const [loading, setLoading] = useState(true);
+  // Show loading indicator for initial load
+  const [initialLoading, setInitialLoading] = useState(true);
 
-  // Check if user is logged in from localStorage on initial load
+  // Check if user is logged in on initial load
   useEffect(() => {
-    const savedUser = localStorage.getItem("currentUser");
-    const savedUserType = localStorage.getItem("userType");
+    // Short timeout to ensure the app has time to check localStorage
+    const timer = setTimeout(() => {
+      setInitialLoading(false);
+    }, 500);
 
-    if (savedUser && savedUserType) {
-      setCurrentUser(JSON.parse(savedUser));
-      setUserType(savedUserType);
-    }
-
-    setLoading(false);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Login
-  const login = (user, type) => {
-    setCurrentUser(user);
-    setUserType(type);
-
-    // Save to localStorage
-    localStorage.setItem("currentUser", JSON.stringify(user));
-    localStorage.setItem("userType", type);
-  };
-
-  // Logout function
-  const logout = () => {
-    setCurrentUser(null);
-    setUserType(null);
-
-    // Clear localStorage
-    localStorage.removeItem("currentUser");
-    localStorage.removeItem("userType");
-  };
-
   // Show loading indicator while checking localStorage
-  if (loading) {
+  if (initialLoading) {
     return (
       <div className="loading-overlay">
         <div>
@@ -70,25 +46,32 @@ function App() {
     );
   }
 
-  // Wrap our app with ThemeProvider
+  // Wrap our app with ThemeProvider and AuthProvider
   return (
     <ThemeProvider>
       <div className="app">
-        <AuthContext.Provider value={{ currentUser, userType, login, logout }}>
-          {!currentUser ? (
-            <Login />
-          ) : (
-            <>
-              <Header />
-              <main className="main-content">
-                {userType === "admin" && <AdminDashboard />}
-                {userType === "teacher" && <TeacherDashboard />}
-                {userType === "parent" && <ParentDashboard />}
-              </main>
-              <Footer />
-            </>
-          )}
-        </AuthContext.Provider>
+        <AuthProvider>
+          {/* Use the AuthContext to access user data */}
+          <AuthContext.Consumer>
+            {({ currentUser, userType }) => (
+              <>
+                {!currentUser ? (
+                  <Login />
+                ) : (
+                  <>
+                    <Header />
+                    <main className="main-content">
+                      {userType === "admin" && <AdminDashboard />}
+                      {userType === "teacher" && <TeacherDashboard />}
+                      {userType === "parent" && <ParentDashboard />}
+                    </main>
+                    <Footer />
+                  </>
+                )}
+              </>
+            )}
+          </AuthContext.Consumer>
+        </AuthProvider>
       </div>
     </ThemeProvider>
   );

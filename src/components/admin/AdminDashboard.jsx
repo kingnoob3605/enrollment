@@ -4,6 +4,7 @@ import TeacherManagement from "./TeacherManagement";
 import StudentManagement from "../student/StudentManagement";
 import Reports from "./Reports";
 import Settings from "./Settings";
+import api from "../../utils/api";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("students");
@@ -73,6 +74,29 @@ const AdminDashboard = () => {
 
     return matchesSearch && matchesSection && matchesTeacher && matchesStatus;
   });
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const response = await api.get("/admin/dashboard");
+        const data = response.data;
+
+        // Update state with API data
+        setTotalStudents(data.totalStudents);
+        setSectionData(
+          data.studentsBySection.map((item) => ({
+            id: item.section,
+            name: `Section ${item.section}`,
+            count: item.count,
+          }))
+        );
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   // Render the dashboard home content
   const renderDashboardHome = () => {

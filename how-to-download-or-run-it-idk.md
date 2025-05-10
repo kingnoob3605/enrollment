@@ -74,3 +74,4 @@ Reach out to your team lead if you need additional assistance.
 
 npm install recharts
 npm install xlsx
+npm install axios
