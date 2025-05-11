@@ -17,153 +17,18 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-import api from "../../utils/api";
-
-// Helper function to generate random LRN (12 digits)
-const generateRandomLRN = () => {
-  let lrn = "";
-  for (let i = 0; i < 12; i++) {
-    lrn += Math.floor(Math.random() * 10);
-  }
-  return lrn;
-};
-
-// Helper to generate random Filipino names
-const getRandomName = () => {
-  const firstNames = [
-    "Miguel",
-    "Sofia",
-    "Juan",
-    "Maria",
-    "Gabriel",
-    "Isabella",
-    "Rafael",
-    "Camila",
-    "Antonio",
-    "Mariana",
-    "Jose",
-    "Angela",
-    "Carlos",
-    "Gabriela",
-    "Andres",
-    "Ana",
-    "Francisco",
-    "Elena",
-    "Luis",
-    "Beatriz",
-    "Eduardo",
-    "Bianca",
-    "Manuel",
-    "Carmen",
-    "Emilio",
-    "Rosario",
-    "Fernando",
-    "Teresa",
-  ];
-
-  const lastNames = [
-    "Santos",
-    "Reyes",
-    "Cruz",
-    "Bautista",
-    "Ramos",
-    "Mendoza",
-    "Flores",
-    "Rivera",
-    "Aquino",
-    "Garcia",
-    "Torres",
-    "Gonzales",
-    "Diaz",
-    "Castro",
-    "Rodriguez",
-    "Rosario",
-    "Fernandez",
-    "Morales",
-    "Del Rosario",
-    "Gomez",
-    "Perez",
-    "Hernandez",
-    "Villanueva",
-    "De Guzman",
-    "Domingo",
-    "Santiago",
-  ];
-
-  const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
-  const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
-
-  return `${firstName} ${lastName}`;
-};
+import apiService from "../../utils/api";
 
 const StudentManagement = ({ userType }) => {
   // Get the current user context to access teacher section
   const { currentUser } = useContext(AuthContext);
 
-  // Define Grade 1 sections - assuming there are 15 teachers managing these sections
+  // Define Grade 1 sections
   const grade1Sections = ["A", "B", "C", "D", "E"];
 
-  // Generate random students for Grade 1 sections
-  const generateGrade1Students = (count) => {
-    const students = [];
-
-    // Generate students distributed across Grade 1 sections
-    for (let i = 0; i < count; i++) {
-      const section =
-        grade1Sections[Math.floor(Math.random() * grade1Sections.length)];
-      const gender = Math.random() > 0.5 ? "Male" : "Female";
-
-      // Generate health metrics appropriate for grade 1 students
-      const height =
-        gender === "Male"
-          ? Math.floor(Math.random() * 15) + 110 // 110-125 cm for boys
-          : Math.floor(Math.random() * 15) + 108; // 108-123 cm for girls
-
-      const weight =
-        gender === "Male"
-          ? Math.floor(Math.random() * 10) + 18 // 18-28 kg for boys
-          : Math.floor(Math.random() * 10) + 17; // 17-27 kg for girls
-
-      // Calculate BMI
-      const heightInMeters = height / 100;
-      const bmi = (weight / (heightInMeters * heightInMeters)).toFixed(1);
-
-      // Determine nutritional status based on BMI
-      let nutritionalStatus;
-      if (bmi < 14) nutritionalStatus = "Severely Underweight";
-      else if (bmi < 15) nutritionalStatus = "Underweight";
-      else if (bmi < 18.5) nutritionalStatus = "Normal";
-      else if (bmi < 21) nutritionalStatus = "Overweight";
-      else nutritionalStatus = "Obese";
-
-      students.push({
-        id: i + 1,
-        name: getRandomName(),
-        grade: "1", // Focus on Grade 1
-        section: section,
-        gender: gender,
-        lrn: generateRandomLRN(),
-        status: "Enrolled",
-        dateEnrolled: "07/29/24",
-        teacherAssigned: `Teacher ${section}`, // Each section has a designated teacher
-        health: {
-          height: height,
-          weight: weight,
-          bmi: bmi,
-          nutritionalStatus: nutritionalStatus,
-          vision: Math.random() > 0.9 ? "Needs Correction" : "Normal",
-          hearing: Math.random() > 0.97 ? "Needs Assistance" : "Normal",
-          vaccinations: Math.random() > 0.92 ? "Incomplete" : "Complete",
-          dentalHealth: Math.random() > 0.8 ? "Needs Attention" : "Good",
-        },
-      });
-    }
-
-    return students;
-  };
-
-  // State for students (focusing on Grade 1 with more students)
-  const [students, setStudents] = useState(generateGrade1Students(50)); // More students for Grade 1
+  // State for students
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -171,8 +36,10 @@ const StudentManagement = ({ userType }) => {
   const [filterTeacher, setFilterTeacher] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
   const [showCharts, setShowCharts] = useState(true);
+  const [totalStudents, setTotalStudents] = useState(0);
+  const [studentsBySection, setStudentsBySection] = useState({});
 
-  // Prepare data for charts
+  // Chart data
   const [enrollmentData, setEnrollmentData] = useState([]);
   const [genderData, setGenderData] = useState([]);
   const [bmiData, setBmiData] = useState([]);
@@ -194,207 +61,219 @@ const StudentManagement = ({ userType }) => {
     }
   }, [userType, currentUser]);
 
-  // Update chart data when students data changes
+  // Load students data
   useEffect(() => {
-    // Get only the students for this teacher's section if teacher is logged in
-    let filteredStudentsForCharts = students;
-    if (userType === "teacher" && currentUser && currentUser.section) {
-      filteredStudentsForCharts = students.filter(
-        (student) => student.section === currentUser.section
-      );
-    } else if (filterSection) {
-      filteredStudentsForCharts = students.filter(
-        (student) => student.section === filterSection
-      );
-    }
+    const fetchStudents = async () => {
+      setLoading(true);
+      try {
+        // Build filter object
+        const filters = {};
 
-    if (filteredStudentsForCharts && filteredStudentsForCharts.length > 0) {
-      // Prepare enrollment by section data
-      const sectionCounts = {};
-      grade1Sections.forEach((section) => {
-        sectionCounts[section] = 0;
-      });
+        if (searchTerm) filters.search = searchTerm;
 
-      filteredStudentsForCharts.forEach((student) => {
-        if (sectionCounts.hasOwnProperty(student.section)) {
-          sectionCounts[student.section]++;
+        // For teachers, always filter by their section
+        if (userType === "teacher" && currentUser && currentUser.section) {
+          filters.section = currentUser.section;
+        } else if (filterSection) {
+          filters.section = filterSection;
         }
-      });
 
-      const sectionData = Object.keys(sectionCounts).map((section) => ({
-        name: `Section ${section}`,
-        students: sectionCounts[section],
-      }));
+        if (filterTeacher) filters.teacher = filterTeacher;
+        if (filterStatus) filters.status = filterStatus;
 
-      setEnrollmentData(sectionData);
-
-      // Prepare gender distribution data
-      const maleCount = filteredStudentsForCharts.filter(
-        (s) => s.gender === "Male"
-      ).length;
-      const femaleCount = filteredStudentsForCharts.filter(
-        (s) => s.gender === "Female"
-      ).length;
-
-      setGenderData([
-        { name: "Male", value: maleCount },
-        { name: "Female", value: femaleCount },
-      ]);
-
-      // Calculate BMI categories
-      const bmiCategories = {
-        "Severely Underweight": 0,
-        Underweight: 0,
-        Normal: 0,
-        Overweight: 0,
-        Obese: 0,
-      };
-
-      filteredStudentsForCharts.forEach((student) => {
-        if (student.health && student.health.nutritionalStatus) {
-          bmiCategories[student.health.nutritionalStatus]++;
-        }
-      });
-
-      setBmiData(
-        Object.keys(bmiCategories).map((category) => ({
-          name: category,
-          value: bmiCategories[category],
-        }))
-      );
-    }
-  }, [students, filterSection, userType, currentUser]);
-
-  // Get list of teachers for filtering
-  const teachers = Array.from(
-    new Set(students.map((student) => student.teacherAssigned))
-  );
-
-  // Filter students based on search term and filters
-  const filteredStudents = students.filter((student) => {
-    // If teacher is logged in, only show students from their section
-    if (userType === "teacher" && currentUser && currentUser.section) {
-      if (student.section !== currentUser.section) {
-        return false;
+        // Get students from API
+        const response = await apiService.getStudents(filters);
+        setStudents(response.data.students);
+      } catch (error) {
+        console.error("Error fetching students:", error);
+      } finally {
+        setLoading(false);
       }
-    }
-
-    const matchesSearch =
-      student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      student.lrn.includes(searchTerm);
-    const matchesSection = filterSection
-      ? student.section === filterSection
-      : true;
-    const matchesTeacher = filterTeacher
-      ? student.teacherAssigned === filterTeacher
-      : true;
-    const matchesStatus = filterStatus ? student.status === filterStatus : true;
-
-    return matchesSearch && matchesSection && matchesTeacher && matchesStatus;
-  });
-
-  // Handle adding a new student
-  const handleAddStudent = (newStudent) => {
-    // If teacher is logged in, ensure new student is assigned to their section
-    if (userType === "teacher" && currentUser && currentUser.section) {
-      if (newStudent.section !== currentUser.section) {
-        alert(
-          `As a teacher for Section ${currentUser.section}, you can only add students to your section.`
-        );
-        return;
-      }
-    }
-
-    const studentWithId = {
-      ...newStudent,
-      id: students.length + 1,
-      status: "Enrolled",
-      dateEnrolled: new Date().toLocaleDateString("en-US", {
-        month: "2-digit",
-        day: "2-digit",
-        year: "2-digit",
-      }),
-      teacherAssigned: `Teacher ${newStudent.section}`,
     };
 
-    setStudents([...students, studentWithId]);
-    setShowAddForm(false);
+    fetchStudents();
+  }, [
+    searchTerm,
+    filterSection,
+    filterTeacher,
+    filterStatus,
+    userType,
+    currentUser,
+  ]);
+
+  // Load dashboard metrics
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      try {
+        // Get section filter
+        const section =
+          userType === "teacher" && currentUser && currentUser.section
+            ? currentUser.section
+            : filterSection;
+
+        // Get metrics
+        const response = await apiService.getStudentMetrics(section);
+
+        // Update state with metrics
+        setTotalStudents(response.data.totalStudents);
+
+        // Create studentsBySection object
+        const sectionData = {};
+        response.data.studentsBySection.forEach((item) => {
+          sectionData[item.section] = item.count;
+        });
+        setStudentsBySection(sectionData);
+
+        // Update chart data
+        setEnrollmentData(
+          response.data.studentsBySection.map((item) => ({
+            name: `Section ${item.section}`,
+            students: item.count,
+          }))
+        );
+
+        setGenderData(response.data.genderDistribution);
+        setBmiData(response.data.nutritionalStatus);
+      } catch (error) {
+        console.error("Error fetching metrics:", error);
+      }
+    };
+
+    fetchMetrics();
+  }, [filterSection, userType, currentUser]);
+
+  // Handle adding a new student
+  const handleAddStudent = async (newStudent) => {
+    try {
+      // Ensure teacher section rule is enforced
+      if (userType === "teacher" && currentUser && currentUser.section) {
+        if (newStudent.section !== currentUser.section) {
+          alert(
+            `As a teacher for Section ${currentUser.section}, you can only add students to your section.`
+          );
+          return;
+        }
+      }
+
+      // Create student via API
+      await apiService.createStudent(newStudent);
+
+      // Refresh student list
+      const response = await apiService.getStudents({
+        section:
+          userType === "teacher" && currentUser && currentUser.section
+            ? currentUser.section
+            : filterSection,
+      });
+
+      setStudents(response.data.students);
+      setShowAddForm(false);
+
+      // Refresh metrics
+      const metricsResponse = await apiService.getStudentMetrics(
+        userType === "teacher" && currentUser && currentUser.section
+          ? currentUser.section
+          : filterSection
+      );
+
+      setTotalStudents(metricsResponse.data.totalStudents);
+
+      alert("Student added successfully!");
+    } catch (error) {
+      console.error("Error adding student:", error);
+      alert(
+        "Error adding student: " +
+          (error.response?.data?.message || "Unknown error")
+      );
+    }
+  };
+
+  // Handle viewing a student profile
+  const handleViewStudent = async (id) => {
+    try {
+      const response = await apiService.getStudent(id);
+      setSelectedStudent(response.data.student.id);
+    } catch (error) {
+      console.error("Error fetching student:", error);
+      alert("Error loading student profile");
+    }
   };
 
   // Handle printing student profile
   const handlePrintStudentProfile = () => {
     if (!selectedStudent) return;
 
-    const student = students.find((s) => s.id === selectedStudent);
-    if (!student) return;
+    try {
+      const student = students.find((s) => s.id === selectedStudent);
+      if (!student) return;
 
-    // Use the imported utility function
-    printStudentProfile(student);
+      // Use the imported utility function
+      printStudentProfile(student);
+    } catch (error) {
+      console.error("Error printing profile:", error);
+      alert("Error printing student profile");
+    }
   };
 
   // Handle Excel export
   const handleExportToExcel = () => {
-    // Prepare school info
-    const schoolInfo = {
-      schoolName: "Elementary School Learners Profile System",
-      schoolId: "12345",
-      division: "Zamboanga City",
-      district: "District 1",
-      schoolYear: "2024-2025",
-    };
-
-    // Get the section - for teachers, use their assigned section, for admin, use the filter
-    const sectionToExport =
-      userType === "teacher" && currentUser && currentUser.section
-        ? currentUser.section
-        : filterSection || "All";
-
-    // Get students to export - filter by section if needed
-    const studentsToExport =
-      sectionToExport !== "All" ? filteredStudents : students;
-
-    // Process students to include all necessary fields
-    const processedStudents = studentsToExport.map((student) => {
-      // Calculate age from birthdate if available
-      let age = "";
-      if (student.birthdate) {
-        const birthDate = new Date(student.birthdate);
-        const today = new Date();
-        age = today.getFullYear() - birthDate.getFullYear();
-      }
-
-      // Return processed student with all fields needed for SF1
-      return {
-        ...student,
-        age,
-        motherTongue: "Filipino", // Default
-        religion: "Catholic", // Default
-        motherName: "", // These fields may not be in your data
-        ip: "", // Defaults or empty
+    try {
+      // Prepare school info
+      const schoolInfo = {
+        schoolName: "Elementary School Learners Profile System",
+        schoolId: "12345",
+        division: "Zamboanga City",
+        district: "District 1",
+        schoolYear: "2024-2025",
       };
-    });
 
-    // Call the export function
-    exportStudentListToExcel(
-      processedStudents,
-      schoolInfo,
-      sectionToExport,
-      "1" // Grade level
-    );
+      // Get the section - for teachers, use their assigned section, for admin, use the filter
+      const sectionToExport =
+        userType === "teacher" && currentUser && currentUser.section
+          ? currentUser.section
+          : filterSection || "All";
+
+      // Get students to export - filter by section if needed
+      const studentsToExport = sectionToExport !== "All" ? students : students;
+
+      // Process students to include all necessary fields
+      const processedStudents = studentsToExport.map((student) => {
+        // Calculate age from birthdate if available
+        let age = "";
+        if (student.birthdate) {
+          const birthDate = new Date(student.birthdate);
+          const today = new Date();
+          age = today.getFullYear() - birthDate.getFullYear();
+        }
+
+        // Return processed student with all fields needed for SF1
+        return {
+          ...student,
+          age,
+          motherTongue: "Filipino", // Default
+          religion: "Catholic", // Default
+          motherName: "", // These fields may not be in your data
+          ip: "", // Defaults or empty
+        };
+      });
+
+      // Call the export function
+      exportStudentListToExcel(
+        processedStudents,
+        schoolInfo,
+        sectionToExport,
+        "1" // Grade level
+      );
+    } catch (error) {
+      console.error("Error exporting to Excel:", error);
+      alert("Error exporting student data");
+    }
   };
 
-  // Get counts for dashboard
-  const totalStudents =
-    userType === "teacher" && currentUser && currentUser.section
-      ? students.filter((s) => s.section === currentUser.section).length
-      : students.length;
-
-  const studentsBySection = {};
-  grade1Sections.forEach((section) => {
-    studentsBySection[section] = students.filter(
-      (s) => s.section === section
-    ).length;
-  });
+  // Get list of teachers for filtering
+  const teachers = Array.from(
+    new Set(students.map((student) => student.teacher_assigned))
+  ).filter(Boolean);
 
   return (
     <div className="student-management">
@@ -438,267 +317,291 @@ const StudentManagement = ({ userType }) => {
         </div>
       </div>
 
-      {/* Grade 1 Dashboard Summary */}
-      {!showAddForm && !selectedStudent && (
-        <div className="dashboard-summary">
-          <div className="summary-stats">
-            <div className="stat-box">
-              <h4>
-                {userType === "teacher" && currentUser && currentUser.section
-                  ? `Total Section ${currentUser.section} Students`
-                  : "Total Grade 1 Students"}
-              </h4>
-              <p className="stat-value">{totalStudents}</p>
-            </div>
-            <div className="stat-box">
-              <h4>Male Students</h4>
-              <p className="stat-value">
-                {filteredStudents.filter((s) => s.gender === "Male").length}
-              </p>
-            </div>
-            <div className="stat-box">
-              <h4>Female Students</h4>
-              <p className="stat-value">
-                {filteredStudents.filter((s) => s.gender === "Female").length}
-              </p>
-            </div>
-          </div>
-
-          {/* Only show section breakdown for admins or all teachers */}
-          {(userType === "admin" ||
-            (userType === "teacher" &&
-              (!currentUser || !currentUser.section))) && (
-            <div className="section-summary">
-              <h4>Students by Section</h4>
-              <div className="section-grid">
-                {grade1Sections.map((section) => (
-                  <div
-                    key={section}
-                    className="section-card"
-                    onClick={() => setFilterSection(section)}
-                  >
-                    <h5>Section {section}</h5>
-                    <p className="section-count">
-                      {studentsBySection[section] || 0}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Dashboard Charts */}
-          {showCharts && (
-            <div className="dashboard-charts">
-              <div className="charts-row">
-                <div className="chart-container">
+      {loading ? (
+        <div className="loading-overlay">
+          <div className="loader"></div>
+          <p className="loading-text">Loading student data...</p>
+        </div>
+      ) : (
+        <>
+          {/* Grade 1 Dashboard Summary */}
+          {!showAddForm && !selectedStudent && (
+            <div className="dashboard-summary">
+              <div className="summary-stats">
+                <div className="stat-box">
                   <h4>
                     {userType === "teacher" &&
                     currentUser &&
                     currentUser.section
-                      ? `Section ${currentUser.section} Enrollment`
-                      : "Enrollment by Section"}
+                      ? `Total Section ${currentUser.section} Students`
+                      : "Total Grade 1 Students"}
                   </h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={enrollmentData}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="name" />
-                      <YAxis />
-                      <Tooltip />
-                      <Legend />
-                      <Bar dataKey="students" fill="#8884d8" name="Students" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <p className="stat-value">{totalStudents}</p>
                 </div>
+                <div className="stat-box">
+                  <h4>Male Students</h4>
+                  <p className="stat-value">
+                    {students.filter((s) => s.gender === "Male").length}
+                  </p>
+                </div>
+                <div className="stat-box">
+                  <h4>Female Students</h4>
+                  <p className="stat-value">
+                    {students.filter((s) => s.gender === "Female").length}
+                  </p>
+                </div>
+              </div>
 
-                <div className="chart-container">
-                  <h4>Gender Distribution</h4>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={genderData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={true}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                        label={({ name, percent }) =>
-                          `${name}: ${(percent * 100).toFixed(0)}%`
-                        }
+              {/* Only show section breakdown for admins or all teachers */}
+              {(userType === "admin" ||
+                (userType === "teacher" &&
+                  (!currentUser || !currentUser.section))) && (
+                <div className="section-summary">
+                  <h4>Students by Section</h4>
+                  <div className="section-grid">
+                    {grade1Sections.map((section) => (
+                      <div
+                        key={section}
+                        className="section-card"
+                        onClick={() => setFilterSection(section)}
                       >
-                        {genderData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => [value, "Students"]} />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
+                        <h5>Section {section}</h5>
+                        <p className="section-count">
+                          {studentsBySection[section] || 0}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <div className="chart-container">
-                <h4>Nutritional Status (BMI Categories)</h4>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={bmiData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#82ca9d" name="Students" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              {/* Dashboard Charts */}
+              {showCharts && (
+                <div className="dashboard-charts">
+                  <div className="charts-row">
+                    <div className="chart-container">
+                      <h4>
+                        {userType === "teacher" &&
+                        currentUser &&
+                        currentUser.section
+                          ? `Section ${currentUser.section} Enrollment`
+                          : "Enrollment by Section"}
+                      </h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={enrollmentData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="name" />
+                          <YAxis />
+                          <Tooltip />
+                          <Legend />
+                          <Bar
+                            dataKey="students"
+                            fill="#8884d8"
+                            name="Students"
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="chart-container">
+                      <h4>Gender Distribution</h4>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <PieChart>
+                          <Pie
+                            data={genderData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={true}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="value"
+                            label={({ name, percent }) =>
+                              `${name}: ${(percent * 100).toFixed(0)}%`
+                            }
+                          >
+                            {genderData.map((entry, index) => (
+                              <Cell
+                                key={`cell-${index}`}
+                                fill={COLORS[index % COLORS.length]}
+                              />
+                            ))}
+                          </Pie>
+                          <Tooltip formatter={(value) => [value, "Students"]} />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div className="chart-container">
+                    <h4>Nutritional Status (BMI Categories)</h4>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={bmiData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="name" />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Bar dataKey="value" fill="#82ca9d" name="Students" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
-      )}
 
-      {showAddForm ? (
-        <EnrollmentForm
-          onClose={() => setShowAddForm(false)}
-          onSave={handleAddStudent}
-          defaultGrade="1" // Default to Grade 1
-          sections={
-            userType === "teacher" && currentUser && currentUser.section
-              ? [currentUser.section] // Teacher can only add to their section
-              : grade1Sections // Admin can add to any section
-          }
-        />
-      ) : selectedStudent ? (
-        <>
-          <StudentProfile
-            student={students.find((s) => s.id === selectedStudent)}
-            onClose={() => setSelectedStudent(null)}
-            viewOnly={userType === "parent"}
-          />
-          {userType === "teacher" && (
-            <div className="profile-actions" style={{ marginTop: "10px" }}>
-              <button
-                onClick={handlePrintStudentProfile}
-                className="print-button"
-              >
-                Print Detailed Profile
-              </button>
+          {showAddForm ? (
+            <EnrollmentForm
+              onClose={() => setShowAddForm(false)}
+              onSave={handleAddStudent}
+              defaultGrade="1" // Default to Grade 1
+              sections={
+                userType === "teacher" && currentUser && currentUser.section
+                  ? [currentUser.section] // Teacher can only add to their section
+                  : grade1Sections // Admin can add to any section
+              }
+            />
+          ) : selectedStudent ? (
+            <>
+              <StudentProfile
+                student={students.find((s) => s.id === selectedStudent)}
+                onClose={() => setSelectedStudent(null)}
+                viewOnly={userType === "parent"}
+              />
+              {userType === "teacher" && (
+                <div className="profile-actions" style={{ marginTop: "10px" }}>
+                  <button
+                    onClick={handlePrintStudentProfile}
+                    className="print-button"
+                  >
+                    Print Detailed Profile
+                  </button>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="student-list-container">
+              <div className="filters">
+                <div className="search-box">
+                  <input
+                    type="text"
+                    placeholder="Search by name or LRN..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="search-input"
+                  />
+                </div>
+
+                <div className="filter-controls">
+                  {/* Only show section filter if not a teacher or teacher doesn't have a section */}
+                  {(userType !== "teacher" ||
+                    !currentUser ||
+                    !currentUser.section) && (
+                    <div className="filter-group">
+                      <label>Section:</label>
+                      <select
+                        value={filterSection}
+                        onChange={(e) => setFilterSection(e.target.value)}
+                      >
+                        <option value="">All Sections</option>
+                        {grade1Sections.map((section) => (
+                          <option key={section} value={section}>
+                            Section {section}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* Only show teacher filter if not a teacher or teacher doesn't have a section */}
+                  {(userType !== "teacher" ||
+                    !currentUser ||
+                    !currentUser.section) &&
+                    teachers.length > 0 && (
+                      <div className="filter-group">
+                        <label>Teacher:</label>
+                        <select
+                          value={filterTeacher}
+                          onChange={(e) => setFilterTeacher(e.target.value)}
+                        >
+                          <option value="">All Teachers</option>
+                          {teachers.map((teacher) => (
+                            <option key={teacher} value={teacher}>
+                              {teacher}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                  <div className="filter-group">
+                    <label>Status:</label>
+                    <select
+                      value={filterStatus}
+                      onChange={(e) => setFilterStatus(e.target.value)}
+                    >
+                      <option value="">All</option>
+                      <option value="Enrolled">Enrolled</option>
+                      <option value="Promoted">Promoted</option>
+                      <option value="Transferred">Transferred</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <table className="students-table">
+                <thead>
+                  <tr>
+                    <th>LRN</th>
+                    <th>Name</th>
+                    <th>Section</th>
+                    <th>Teacher</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.length > 0 ? (
+                    students.map((student) => (
+                      <tr key={student.id}>
+                        <td>{student.lrn}</td>
+                        <td>{student.name}</td>
+                        <td>
+                          {student.grade}-{student.section}
+                        </td>
+                        <td>{student.teacher_assigned}</td>
+                        <td>
+                          {student.date_enrolled
+                            ? new Date(
+                                student.date_enrolled
+                              ).toLocaleDateString()
+                            : "N/A"}
+                        </td>
+                        <td>{student.status}</td>
+                        <td>
+                          <button
+                            onClick={() => handleViewStudent(student.id)}
+                            className="view-button"
+                          >
+                            View Profile
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="7" className="no-results">
+                        No students found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           )}
         </>
-      ) : (
-        <div className="student-list-container">
-          <div className="filters">
-            <div className="search-box">
-              <input
-                type="text"
-                placeholder="Search by name or LRN..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="search-input"
-              />
-            </div>
-
-            <div className="filter-controls">
-              {/* Only show section filter if not a teacher or teacher doesn't have a section */}
-              {(userType !== "teacher" ||
-                !currentUser ||
-                !currentUser.section) && (
-                <div className="filter-group">
-                  <label>Section:</label>
-                  <select
-                    value={filterSection}
-                    onChange={(e) => setFilterSection(e.target.value)}
-                  >
-                    <option value="">All Sections</option>
-                    {grade1Sections.map((section) => (
-                      <option key={section} value={section}>
-                        Section {section}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              {/* Only show teacher filter if not a teacher or teacher doesn't have a section */}
-              {(userType !== "teacher" ||
-                !currentUser ||
-                !currentUser.section) && (
-                <div className="filter-group">
-                  <label>Teacher:</label>
-                  <select
-                    value={filterTeacher}
-                    onChange={(e) => setFilterTeacher(e.target.value)}
-                  >
-                    <option value="">All Teachers</option>
-                    {teachers.map((teacher) => (
-                      <option key={teacher} value={teacher}>
-                        {teacher}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="filter-group">
-                <label>Status:</label>
-                <select
-                  value={filterStatus}
-                  onChange={(e) => setFilterStatus(e.target.value)}
-                >
-                  <option value="">All</option>
-                  <option value="Enrolled">Enrolled</option>
-                  <option value="Promoted">Promoted</option>
-                  <option value="Transferred">Transferred</option>
-                </select>
-              </div>
-            </div>
-          </div>
-
-          <table className="students-table">
-            <thead>
-              <tr>
-                <th>LRN</th>
-                <th>Name</th>
-                <th>Section</th>
-                <th>Teacher</th>
-                <th>Date</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredStudents.length > 0 ? (
-                filteredStudents.map((student) => (
-                  <tr key={student.id}>
-                    <td>{student.lrn}</td>
-                    <td>{student.name}</td>
-                    <td>1-{student.section}</td>
-                    <td>{student.teacherAssigned}</td>
-                    <td>{student.dateEnrolled}</td>
-                    <td>{student.status}</td>
-                    <td>
-                      <button
-                        onClick={() => setSelectedStudent(student.id)}
-                        className="view-button"
-                      >
-                        View Profile
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="no-results">
-                    No students found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
       )}
     </div>
   );

@@ -1,87 +1,15 @@
 import React, { useState, useEffect } from "react";
+import apiService from "../../utils/api"; // Updated import
 
 const TeacherManagement = () => {
-  // Mock data with 5 teachers, each assigned to a section
-  const [teachers, setTeachers] = useState([
-    {
-      id: 1,
-      name: "Maria Santos",
-      position: "Class Advisor",
-      grade: "1",
-      section: "A",
-      email: "maria.santos@school.edu",
-      phone: "(123) 456-7001",
-      subjects: ["English", "Science"],
-    },
-    {
-      id: 2,
-      name: "Juan Dela Cruz",
-      position: "Class Advisor",
-      grade: "1",
-      section: "B",
-      email: "juan.delacruz@school.edu",
-      phone: "(123) 456-7002",
-      subjects: ["Mathematics", "Filipino"],
-    },
-    {
-      id: 3,
-      name: "Ana Reyes",
-      position: "Class Advisor",
-      grade: "1",
-      section: "C",
-      email: "ana.reyes@school.edu",
-      phone: "(123) 456-7003",
-      subjects: ["Social Studies", "Arts"],
-    },
-    {
-      id: 4,
-      name: "Pedro Lim",
-      position: "Class Advisor",
-      grade: "1",
-      section: "D",
-      email: "pedro.lim@school.edu",
-      phone: "(123) 456-7004",
-      subjects: ["Physical Education", "Health"],
-    },
-    {
-      id: 5,
-      name: "Sofia Garcia",
-      position: "Class Advisor",
-      grade: "1",
-      section: "E",
-      email: "sofia.garcia@school.edu",
-      phone: "(123) 456-7005",
-      subjects: ["Music", "Technology"],
-    },
-  ]);
-
+  const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [editingTeacher, setEditingTeacher] = useState(null);
   const [viewingTeacher, setViewingTeacher] = useState(null);
 
-  // Save teacher data to localStorage to persist across refreshes
-  useEffect(() => {
-    const savedTeachers = localStorage.getItem("teacherData");
-    if (savedTeachers) {
-      setTeachers(JSON.parse(savedTeachers));
-    }
-  }, []);
-
-  // Update localStorage when teachers change
-  useEffect(() => {
-    localStorage.setItem("teacherData", JSON.stringify(teachers));
-  }, [teachers]);
-
-  // Filter teachers based on search term
-  const filteredTeachers = teachers.filter(
-    (teacher) =>
-      teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.section.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // New teacher form state
+  // New form data state
   const [formData, setFormData] = useState({
     name: "",
     position: "Class Advisor",
@@ -91,6 +19,33 @@ const TeacherManagement = () => {
     phone: "",
     subjects: [],
   });
+
+  // Load teachers data
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      setLoading(true);
+      try {
+        const response = await apiService.getTeachers();
+        setTeachers(response.data.teachers);
+      } catch (error) {
+        console.error("Error fetching teachers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeachers();
+  }, []);
+
+  // Filter teachers based on search term
+  const filteredTeachers = teachers.filter(
+    (teacher) =>
+      teacher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (teacher.email &&
+        teacher.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (teacher.section &&
+        teacher.section.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
 
   // Handle form change
   const handleChange = (e) => {
@@ -112,38 +67,51 @@ const TeacherManagement = () => {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (editingTeacher) {
-      // Update existing teacher
-      const updatedTeachers = teachers.map((teacher) =>
-        teacher.id === editingTeacher.id
-          ? { ...formData, id: teacher.id }
-          : teacher
-      );
-      setTeachers(updatedTeachers);
-      setEditingTeacher(null);
-    } else {
-      // Add new teacher
-      const newTeacher = {
-        ...formData,
-        id: Date.now(), // Generate a unique ID
-      };
-      setTeachers([...teachers, newTeacher]);
-    }
+    try {
+      if (editingTeacher) {
+        // Update existing teacher
+        await apiService.updateTeacher(editingTeacher.id, formData);
 
-    // Reset form and close it
-    setFormData({
-      name: "",
-      position: "Class Advisor",
-      grade: "1",
-      section: "",
-      email: "",
-      phone: "",
-      subjects: [],
-    });
-    setShowAddForm(false);
+        // Update local state
+        const updatedTeachers = teachers.map((teacher) =>
+          teacher.id === editingTeacher.id
+            ? { ...formData, id: teacher.id }
+            : teacher
+        );
+        setTeachers(updatedTeachers);
+        setEditingTeacher(null);
+
+        alert("Teacher updated successfully!");
+      } else {
+        // Add new teacher
+        const response = await apiService.createTeacher(formData);
+
+        // Update local state
+        setTeachers([...teachers, response.data.teacher]);
+
+        alert("Teacher added successfully!");
+      }
+
+      // Reset form and close it
+      setFormData({
+        name: "",
+        position: "Class Advisor",
+        grade: "1",
+        section: "",
+        email: "",
+        phone: "",
+        subjects: [],
+      });
+      setShowAddForm(false);
+    } catch (error) {
+      console.error("Error saving teacher:", error);
+      alert(
+        "Error: " + (error.response?.data?.message || "Unknown error occurred")
+      );
+    }
   };
 
   // Start editing a teacher
@@ -151,11 +119,11 @@ const TeacherManagement = () => {
     setEditingTeacher(teacher);
     setFormData({
       name: teacher.name,
-      position: teacher.position,
+      position: teacher.position || "Class Advisor",
       grade: teacher.grade || "1",
       section: teacher.section || "",
-      email: teacher.email,
-      phone: teacher.phone,
+      email: teacher.email || "",
+      phone: teacher.phone || "",
       subjects: teacher.subjects || [],
     });
     setShowAddForm(true);
@@ -163,18 +131,35 @@ const TeacherManagement = () => {
   };
 
   // View teacher details
-  const handleView = (teacher) => {
-    setViewingTeacher(teacher);
-    setShowAddForm(false);
-    setEditingTeacher(null);
+  const handleView = async (teacher) => {
+    try {
+      const response = await apiService.getTeacher(teacher.id);
+      setViewingTeacher(response.data.teacher);
+      setShowAddForm(false);
+      setEditingTeacher(null);
+    } catch (error) {
+      console.error("Error fetching teacher details:", error);
+      alert("Error loading teacher details");
+    }
   };
 
   // Delete a teacher
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this teacher?")) {
-      setTeachers(teachers.filter((teacher) => teacher.id !== id));
-      if (viewingTeacher && viewingTeacher.id === id) {
-        setViewingTeacher(null);
+      try {
+        await apiService.deleteTeacher(id);
+
+        // Update local state
+        setTeachers(teachers.filter((teacher) => teacher.id !== id));
+
+        if (viewingTeacher && viewingTeacher.id === id) {
+          setViewingTeacher(null);
+        }
+
+        alert("Teacher deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting teacher:", error);
+        alert("Error deleting teacher");
       }
     }
   };
@@ -229,11 +214,16 @@ const TeacherManagement = () => {
             <div className="profile-details">
               <div className="detail-item">
                 <label>Subjects Taught:</label>
-                <span>{viewingTeacher.subjects.join(", ")}</span>
+                <span>
+                  {viewingTeacher.subjects &&
+                  Array.isArray(viewingTeacher.subjects)
+                    ? viewingTeacher.subjects.join(", ")
+                    : "None specified"}
+                </span>
               </div>
               <div className="detail-item">
                 <label>Students:</label>
-                <span>{Math.floor(Math.random() * 10) + 25} students</span>
+                <span>{viewingTeacher.students_count || "0"} students</span>
               </div>
               <div className="detail-item">
                 <label>Schedule:</label>
@@ -281,191 +271,204 @@ const TeacherManagement = () => {
         </button>
       </div>
 
-      {showAddForm ? (
-        <div className="teacher-form">
-          <h3>{editingTeacher ? "Edit Teacher" : "Add New Teacher"}</h3>
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <label>Full Name*:</label>
-              <input
-                type="text"
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Position*:</label>
-              <select
-                name="position"
-                value={formData.position}
-                onChange={handleChange}
-                required
-              >
-                <option value="Class Advisor">Class Advisor</option>
-                <option value="Subject Teacher">Subject Teacher</option>
-                <option value="Department Head">Department Head</option>
-              </select>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label>Grade*:</label>
-                <select
-                  name="grade"
-                  value={formData.grade}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="1">Grade 1</option>
-                  <option value="2">Grade 2</option>
-                  <option value="3">Grade 3</option>
-                  <option value="4">Grade 4</option>
-                  <option value="5">Grade 5</option>
-                  <option value="6">Grade 6</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label>Section*:</label>
-                <select
-                  name="section"
-                  value={formData.section}
-                  onChange={handleChange}
-                  required
-                >
-                  <option value="">Select Section</option>
-                  <option value="A">Section A</option>
-                  <option value="B">Section B</option>
-                  <option value="C">Section C</option>
-                  <option value="D">Section D</option>
-                  <option value="E">Section E</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="form-group">
-              <label>Email*:</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Phone*:</label>
-              <input
-                type="text"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Subjects Taught (comma-separated):</label>
-              <input
-                type="text"
-                name="subjects"
-                value={formData.subjects.join(", ")}
-                onChange={handleChange}
-              />
-              <small>E.g. Mathematics, Science, English</small>
-            </div>
-
-            <div className="form-actions">
-              <button type="submit" className="submit-button">
-                {editingTeacher ? "Update Teacher" : "Add Teacher"}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowAddForm(false);
-                  setEditingTeacher(null);
-                }}
-                className="cancel-button"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
+      {loading ? (
+        <div className="loading-overlay">
+          <div className="loader"></div>
+          <p className="loading-text">Loading teacher data...</p>
         </div>
-      ) : viewingTeacher ? (
-        renderTeacherProfile()
       ) : (
-        <div className="teacher-list-container">
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search teachers by name, email or section..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-          </div>
+        <>
+          {showAddForm ? (
+            <div className="teacher-form">
+              <h3>{editingTeacher ? "Edit Teacher" : "Add New Teacher"}</h3>
+              <form onSubmit={handleSubmit}>
+                <div className="form-group">
+                  <label>Full Name*:</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
 
-          <table className="teachers-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Position</th>
-                <th>Grade & Section</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTeachers.length > 0 ? (
-                filteredTeachers.map((teacher) => (
-                  <tr key={teacher.id}>
-                    <td>{teacher.name}</td>
-                    <td>{teacher.position}</td>
-                    <td>
-                      {teacher.grade && teacher.section
-                        ? `Grade ${teacher.grade}, Section ${teacher.section}`
-                        : "N/A"}
-                    </td>
-                    <td>{teacher.email}</td>
-                    <td>{teacher.phone}</td>
-                    <td>
-                      <button
-                        onClick={() => handleView(teacher)}
-                        className="view-button"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => handleEdit(teacher)}
-                        className="edit-button"
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleDelete(teacher.id)}
-                        className="delete-button"
-                      >
-                        Delete
-                      </button>
-                    </td>
+                <div className="form-group">
+                  <label>Position*:</label>
+                  <select
+                    name="position"
+                    value={formData.position}
+                    onChange={handleChange}
+                    required
+                  >
+                    <option value="Class Advisor">Class Advisor</option>
+                    <option value="Subject Teacher">Subject Teacher</option>
+                    <option value="Department Head">Department Head</option>
+                  </select>
+                </div>
+
+                <div className="form-row">
+                  <div className="form-group">
+                    <label>Grade*:</label>
+                    <select
+                      name="grade"
+                      value={formData.grade}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="1">Grade 1</option>
+                      <option value="2">Grade 2</option>
+                      <option value="3">Grade 3</option>
+                      <option value="4">Grade 4</option>
+                      <option value="5">Grade 5</option>
+                      <option value="6">Grade 6</option>
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Section*:</label>
+                    <select
+                      name="section"
+                      value={formData.section}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Section</option>
+                      <option value="A">Section A</option>
+                      <option value="B">Section B</option>
+                      <option value="C">Section C</option>
+                      <option value="D">Section D</option>
+                      <option value="E">Section E</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="form-group">
+                  <label>Email*:</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Phone*:</label>
+                  <input
+                    type="text"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Subjects Taught (comma-separated):</label>
+                  <input
+                    type="text"
+                    name="subjects"
+                    value={
+                      Array.isArray(formData.subjects)
+                        ? formData.subjects.join(", ")
+                        : ""
+                    }
+                    onChange={handleChange}
+                  />
+                  <small>E.g. Mathematics, Science, English</small>
+                </div>
+
+                <div className="form-actions">
+                  <button type="submit" className="submit-button">
+                    {editingTeacher ? "Update Teacher" : "Add Teacher"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowAddForm(false);
+                      setEditingTeacher(null);
+                    }}
+                    className="cancel-button"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : viewingTeacher ? (
+            renderTeacherProfile()
+          ) : (
+            <div className="teacher-list-container">
+              <div className="search-box">
+                <input
+                  type="text"
+                  placeholder="Search teachers by name, email or section..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="search-input"
+                />
+              </div>
+
+              <table className="teachers-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Position</th>
+                    <th>Grade & Section</th>
+                    <th>Email</th>
+                    <th>Phone</th>
+                    <th>Actions</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="6" className="no-results">
-                    No teachers found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+                </thead>
+                <tbody>
+                  {filteredTeachers.length > 0 ? (
+                    filteredTeachers.map((teacher) => (
+                      <tr key={teacher.id}>
+                        <td>{teacher.name}</td>
+                        <td>{teacher.position}</td>
+                        <td>
+                          {teacher.grade && teacher.section
+                            ? `Grade ${teacher.grade}, Section ${teacher.section}`
+                            : "N/A"}
+                        </td>
+                        <td>{teacher.email}</td>
+                        <td>{teacher.phone}</td>
+                        <td>
+                          <button
+                            onClick={() => handleView(teacher)}
+                            className="view-button"
+                          >
+                            View
+                          </button>
+                          <button
+                            onClick={() => handleEdit(teacher)}
+                            className="edit-button"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDelete(teacher.id)}
+                            className="delete-button"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan="6" className="no-results">
+                        No teachers found
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

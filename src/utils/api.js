@@ -20,4 +20,48 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-export default api;
+// Add response interceptor to handle errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Handle unauthorized access
+      localStorage.removeItem("token");
+      localStorage.removeItem("currentUser");
+      localStorage.removeItem("userType");
+      window.location.href = "/"; // Redirect to login
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Create API service object with methods
+const apiService = {
+  // Auth
+  login: (credentials) => api.post("/login", credentials),
+
+  // Students
+  getStudents: (filters = {}) =>
+    api.get("/admin/students", { params: filters }),
+  getStudent: (id) => api.get(`/admin/students/${id}`),
+  createStudent: (data) => api.post("/admin/students", data),
+  updateStudent: (id, data) => api.put(`/admin/students/${id}`, data),
+  deleteStudent: (id) => api.delete(`/admin/students/${id}`),
+  getStudentMetrics: (section) =>
+    api.get("/student-metrics", { params: { section } }),
+
+  // Teachers
+  getTeachers: () => api.get("/admin/teachers"),
+  getTeacher: (id) => api.get(`/admin/teachers/${id}`),
+  createTeacher: (data) => api.post("/admin/teachers", data),
+  updateTeacher: (id, data) => api.put(`/admin/teachers/${id}`, data),
+  deleteTeacher: (id) => api.delete(`/admin/teachers/${id}`),
+  getTeacherMetrics: () => api.get("/teacher-metrics"),
+
+  // Admin Dashboard
+  getDashboard: () => api.get("/admin/dashboard"),
+  getReports: () => api.get("/admin/reports"),
+  getSettings: () => api.get("/admin/settings"),
+};
+
+export default apiService;
