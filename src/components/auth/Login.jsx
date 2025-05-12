@@ -1,7 +1,7 @@
 import React, { useState, useContext } from "react";
 import { AuthContext } from "../../contexts/AuthContext";
-// Add this import at the top
 import api from "../../utils/api";
+import apiService from "../../utils/api";
 
 const Login = () => {
   const [activeTab, setActiveTab] = useState("login"); // 'login' or 'register'
@@ -39,7 +39,6 @@ const Login = () => {
     });
   };
 
-  // REPLACE this function with the new API version
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -53,8 +52,8 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      // Call the API to login
-      const response = await api.post("/login", {
+      // Call the API to login using apiService
+      const response = await apiService.login({
         username: credentials.username,
         password: credentials.password,
       });
